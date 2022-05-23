@@ -1,0 +1,14 @@
+package com.yj.widget
+
+enum class WidgetAction {
+    ACTION_CREATED_VIEW,
+    ACTION_START,
+    ACTION_RESUME,
+    ACTION_PAUESE,
+    ACTION_STOP,
+    ACTION_DESTROY_VIEW,
+    ACTION_DESTROY,
+    ACTION_PAGE_LEAVE,
+    ACTION_PAGE_RE_CREATED_VIEW,
+    ACTION_PAGE_BACK
+}

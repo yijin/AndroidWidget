@@ -1,0 +1,66 @@
+import  com.yj.xandroiddemo.plugin.*
+
+
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+    id 'kotlin-parcelize'
+    id 'kotlin-kapt'
+    id 'com.yj.xandroiddemo.plugin'
+
+}
+
+
+android {
+    namespace 'com.yj.xandroiddemo.app'
+    compileSdk BuildConfig.compileSdkVersion
+
+    defaultConfig {
+        applicationId "com.yj.xandroiddemo.app"
+        minSdk BuildConfig.minSdkVersion
+        targetSdk BuildConfig.targetSdkVersion
+        versionCode BuildConfig.versionCode
+        versionName BuildConfig.versionName
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = [moduleName: project.getName(),GROUTER_SOURCE_PATH: 'base/src/main/router']
+            }
+        }
+    }
+
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    buildFeatures {
+        viewBinding true
+    }
+}
+
+dependencies {
+
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation Kt.stdlibJdk7
+    implementation AndroidX.appcompat
+    implementation AndroidX.coreKtx
+    implementation AndroidX.constraintlayout
+    implementation Retrofit.runtime
+    implementation project(":widget")
+
+    testImplementation Depend.junit
+    androidTestImplementation Depend.androidTestJunit
+    androidTestImplementation Depend.espressoCore
+}

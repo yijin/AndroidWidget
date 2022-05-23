@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/AndroidWidget.iml" filepath="$PROJECT_DIR$/.idea/modules/AndroidWidget.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/AndroidWidget.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/AndroidWidget.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/AndroidWidget.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/AndroidWidget.app.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/AndroidWidget.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/AndroidWidget.app.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/AndroidWidget.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/AndroidWidget.app.unitTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/widget/AndroidWidget.widget.iml" filepath="$PROJECT_DIR$/.idea/modules/widget/AndroidWidget.widget.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/widget/AndroidWidget.widget.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/widget/AndroidWidget.widget.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/widget/AndroidWidget.widget.main.iml" filepath="$PROJECT_DIR$/.idea/modules/widget/AndroidWidget.widget.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/widget/AndroidWidget.widget.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/widget/AndroidWidget.widget.unitTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/VersionPlugin/VersionPlugin.iml" filepath="$PROJECT_DIR$/.idea/modules/VersionPlugin/VersionPlugin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/VersionPlugin/VersionPlugin.main.iml" filepath="$PROJECT_DIR$/.idea/modules/VersionPlugin/VersionPlugin.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/VersionPlugin/VersionPlugin.test.iml" filepath="$PROJECT_DIR$/.idea/modules/VersionPlugin/VersionPlugin.test.iml" />
+    </modules>
+  </component>
+</project>
