@@ -12,14 +12,17 @@ import android.os.Looper
 import android.util.Log
 import com.yj.widget.event.WidgetEventManager
 import com.yj.widget.event.WidgetEventObserve
+import com.yj.widget.page.PageWidgetStartBuilder
 
 abstract class BaseWidget {
 
     val TAG = "Widget"
     var currentState: WidgetState = WidgetState.CREATED
         protected set
-    lateinit var activity: WidgetActivity
-        private set
+    val activity: WidgetActivity
+        get() {
+            return widgetManager.activity
+        }
     var parentWidget: BaseWidget? = null
         protected set
 
@@ -60,7 +63,6 @@ abstract class BaseWidget {
     open internal fun create(
         params: WidgetCreateParams
     ) {
-        this.activity = params.activity
         this.widgetManager = params.widgetManager
         this.pageWidget = params.pageWidget
         this.parentWidget = params.parentWidget
@@ -122,11 +124,11 @@ abstract class BaseWidget {
     }
 
 
-    fun startPageWidget(widget: Widget): WidgetManager.PageWidgetStartBuilder {
+    fun startPageWidget(widget: Widget): PageWidgetStartBuilder {
         return widgetManager.startPageWidget(widget)
     }
 
-    fun startPageWidgetClearAll(widget: Widget): WidgetManager.PageWidgetStartBuilder {
+    fun startPageWidgetClearAll(widget: Widget): PageWidgetStartBuilder {
         return widgetManager.startPageWidgetClearAll(widget)
     }
 
@@ -139,11 +141,11 @@ abstract class BaseWidget {
     }
 
 
-    fun startPageWidgetSingleTask(widget: Widget): WidgetManager.PageWidgetStartBuilder {
+    fun startPageWidgetSingleTask(widget: Widget): PageWidgetStartBuilder {
         return widgetManager.startPageWidgetSingleTask(widget)
     }
 
-    fun startPageWidgetSingleTop(widget: Widget): WidgetManager.PageWidgetStartBuilder {
+    fun startPageWidgetSingleTop(widget: Widget): PageWidgetStartBuilder {
         return widgetManager.startPageWidgetSingleTop(widget)
     }
 

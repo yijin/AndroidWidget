@@ -5,7 +5,6 @@ import android.view.animation.Animation
 import androidx.annotation.AnimRes
 
 data class WidgetCreateParams(
-    val activity: WidgetActivity,
     val widgetManager: WidgetManager,
     val widget: BaseWidget,
 ) {

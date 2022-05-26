@@ -3,10 +3,10 @@ package com.yj.widget
 
 import android.content.res.Configuration
 import android.os.Bundle
-import android.util.Log
 import android.view.ViewGroup
 import androidx.activity.ComponentActivity
-import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.yj.widget.event.WidgetEventManager
 import com.yj.widget.event.WidgetEventObserve
 
@@ -16,9 +16,60 @@ open class WidgetActivity : ComponentActivity() {
         private set
 
 
+    class WidgetActivityViewModel : ViewModel() {
+
+        var widgetManager: WidgetManager? = null
+
+        override fun onCleared() {
+            super.onCleared()
+        }
+
+    }
+
+    var hasRestored = false
+        private set
+
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        widgetManager = WidgetManager(this)
+        if (needSaveWidgets()) {
+            val viewModel = ViewModelProvider(this).get(WidgetActivityViewModel::class.java)
+            if (viewModel.widgetManager == null) {
+                hasRestored = false
+                widgetManager = WidgetManager()
+                widgetManager.initWidgetManager(this)
+                viewModel.widgetManager = widgetManager
+
+            } else {
+                hasRestored = true
+                widgetManager = viewModel.widgetManager!!
+                if (widgetManager.activity != null) {
+                    widgetManager.activity.lifecycle.removeObserver(widgetManager)
+                }
+                widgetManager.initWidgetManager(this)
+                // widgetManager.initWidgetManager(this)
+            }
+        } else {
+            widgetManager = WidgetManager()
+            widgetManager.initWidgetManager(this)
+        }
+
+
+
+        if (hasRestored) {
+
+
+            if (widgetManager.topPageWidget() != null) {
+
+
+                widgetManager.restore()
+
+            }
+
+        }
+    }
+
+    fun needSaveWidgets(): Boolean {
+        return true
     }
 
 

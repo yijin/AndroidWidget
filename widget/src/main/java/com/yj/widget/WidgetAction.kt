@@ -1,6 +1,7 @@
 package com.yj.widget
 
-enum class WidgetAction {
+internal enum class WidgetAction {
+    ACTION_CREATED,
     ACTION_CREATED_VIEW,
     ACTION_START,
     ACTION_RESUME,
@@ -8,6 +9,7 @@ enum class WidgetAction {
     ACTION_STOP,
     ACTION_DESTROY_VIEW,
     ACTION_DESTROY,
+    ACTION_ACTIVITY_DESTROY,
     ACTION_PAGE_LEAVE,
     ACTION_PAGE_RE_CREATED_VIEW,
     ACTION_PAGE_BACK

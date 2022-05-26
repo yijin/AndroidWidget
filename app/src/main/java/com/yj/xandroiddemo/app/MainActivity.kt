@@ -9,6 +9,7 @@ import com.yj.widget.WidgetActivity
 import com.yj.widget.event.WidgetEventObserve
 import com.yj.xandroiddemo.app.databinding.Widget1Binding
 import com.yj.xandroiddemo.app.databinding.Widget2Binding
+import com.yj.xandroiddemo.app.databinding.Widget2Child1Binding
 import com.yj.xandroiddemo.app.databinding.Widget3Binding
 
 
@@ -17,7 +18,7 @@ class MainActivity : WidgetActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setPageWidget(Widget1())
+
 
 
         /* observeEvent(object :WidgetEventObserve<String>{
@@ -50,7 +51,14 @@ class MainActivity : WidgetActivity() {
             }
         })
 
-        loadDataWidget(MyDataWidget())
+        if (hasRestored) {
+
+        } else {
+
+
+            loadDataWidget(MyDataWidget())
+            setPageWidget(Widget1())
+        }
 
 
     }
@@ -84,20 +92,41 @@ class MainActivity : WidgetActivity() {
         private lateinit var binding: Widget2Binding
         override fun onLoadContentView(): View {
             binding = Widget2Binding.inflate(layoutInflater)
-            return binding.root
-        }
-
-        override fun onCreatedView() {
-            super.onCreatedView()
             binding.btn1.setOnClickListener({
                 startPageWidget(Widget3()).start()
             })
             binding.back.setOnClickListener {
                 backPressed()
             }
+            loadChildWidget(binding.box, Widget2Child())
+            return binding.root
+        }
+
+        override fun onCreatedView() {
+            super.onCreatedView()
+
 
 
         }
+    }
+
+    class Widget2Child : Widget() {
+        private lateinit var binding: Widget2Child1Binding
+        private var num = 1
+        override fun onLoadContentView(): View {
+            binding = Widget2Child1Binding.inflate(layoutInflater)
+            return binding.root
+        }
+
+        override fun onCreatedView() {
+            super.onCreatedView()
+            binding.text.text = "Widget2Child  num=${num}"
+            binding.text.setOnClickListener {
+                num++;
+                binding.text.text = "Widget2Child  num=${num}"
+            }
+        }
+
     }
 
     class Widget3 : Widget() {

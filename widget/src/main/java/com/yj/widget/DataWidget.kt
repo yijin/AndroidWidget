@@ -32,6 +32,14 @@ open class DataWidget : BaseWidget() {
         }
     }
 
+    private fun create() {
+        if (currentState != WidgetState.CREATED) {
+            currentState = WidgetState.CREATED
+
+            onCreate()
+        }
+    }
+
     private fun start() {
         if (currentState == WidgetState.CREATED || currentState == WidgetState.STOP) {
             currentState = WidgetState.STARTED
@@ -113,6 +121,9 @@ open class DataWidget : BaseWidget() {
 
         when (action) {
 
+            WidgetAction.ACTION_CREATED -> {
+                create()
+            }
             WidgetAction.ACTION_START -> {
                 start()
             }
@@ -133,7 +144,6 @@ open class DataWidget : BaseWidget() {
 
 
     }
-
 
 
 }

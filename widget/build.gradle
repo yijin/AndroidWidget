@@ -3,6 +3,9 @@ plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
     id 'com.yj.xandroiddemo.plugin'
+    id 'kotlin-android'
+    id 'kotlin-android-extensions'
+    id 'kotlin-kapt'
 }
 
 android {
@@ -20,6 +23,9 @@ android {
                 arguments = [moduleName: project.getName(), GROUTER_SOURCE_PATH: 'base/src/main/router']
             }
         }
+    }
+    androidExtensions {
+        experimental = true
     }
 
     buildTypes {

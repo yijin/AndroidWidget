@@ -13,6 +13,7 @@ import android.view.animation.AnimationUtils
 import android.widget.FrameLayout
 import androidx.annotation.LayoutRes
 import androidx.lifecycle.*
+import java.lang.RuntimeException
 
 
 abstract class Widget : BaseWidget() {
@@ -51,7 +52,7 @@ abstract class Widget : BaseWidget() {
         get() {
             return if (field != null) field else contentView.parent as ViewGroup?
         }
-        private set
+        internal set
 
 
     @SuppressLint("ResourceType")
@@ -210,6 +211,18 @@ abstract class Widget : BaseWidget() {
         }
     }
 
+    private fun create() {
+        if (currentState != WidgetState.CREATED) {
+            currentState = WidgetState.CREATED
+            onCreate()
+        }
+        if (isPageWidget) {
+            pageAllWidgets.forEach {
+                it.postAction(WidgetAction.ACTION_CREATED)
+            }
+        }
+
+    }
 
     private fun createView() {
         if (currentState == WidgetState.CREATED || currentState == WidgetState.DESTROY_VIEW) {
@@ -290,12 +303,15 @@ abstract class Widget : BaseWidget() {
 
     private fun destroy() {
 
+        //destroyView()
         if (currentState == WidgetState.DESTROY_VIEW) {
             currentState = WidgetState.DESTROYED
             onDestroy()
         }
-        destroyView()
+
+
         if (isPageWidget) {
+
             pageAllWidgets.forEach {
                 it.postAction(WidgetAction.ACTION_DESTROY)
             }
@@ -310,9 +326,10 @@ abstract class Widget : BaseWidget() {
             return
         }
 
-        if (currentState == WidgetState.DESTROY_VIEW) {
+        if (currentState == WidgetState.DESTROY_VIEW || currentState == WidgetState.CREATED) {
 
             if (contentView != null) {
+
                 if (parentView != null) {
                     parentView?.addView(contentView, 0)
                 } else {
@@ -377,6 +394,9 @@ abstract class Widget : BaseWidget() {
     override fun postAction(action: WidgetAction) {
 
         when (action) {
+            WidgetAction.ACTION_CREATED -> {
+                create()
+            }
             WidgetAction.ACTION_CREATED_VIEW -> {
                 createView()
             }
@@ -403,6 +423,11 @@ abstract class Widget : BaseWidget() {
             }
             WidgetAction.ACTION_DESTROY -> {
                 destroy()
+            }
+            WidgetAction.ACTION_ACTIVITY_DESTROY -> {
+                destroy()
+                parentView?.removeView(contentView)
+                parentView = null
             }
             WidgetAction.ACTION_PAGE_RE_CREATED_VIEW -> {
                 pageWidgetReCreateView()
