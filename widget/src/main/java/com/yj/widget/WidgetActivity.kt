@@ -68,7 +68,7 @@ open class WidgetActivity : ComponentActivity() {
         }
     }
 
-    fun needSaveWidgets(): Boolean {
+    open fun needSaveWidgets(): Boolean {
         return true
     }
 

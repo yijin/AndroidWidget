@@ -9,11 +9,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
-import android.view.animation.AnimationUtils
 import android.widget.FrameLayout
 import androidx.annotation.LayoutRes
 import androidx.lifecycle.*
-import java.lang.RuntimeException
 
 
 abstract class Widget : BaseWidget() {
@@ -21,7 +19,7 @@ abstract class Widget : BaseWidget() {
         get() = activity.layoutInflater
 
     val isDestoryView: Boolean
-        get() = currentState == WidgetState.DESTROYED || currentState == WidgetState.DESTROY_VIEW
+        get() = currentState == WidgetState.DESTROYED || currentState == WidgetState.STOP_VIEW
 
     lateinit var contentView: View
         private set
@@ -33,10 +31,7 @@ abstract class Widget : BaseWidget() {
         get() = this == pageWidget
 
 
-    @get:LayoutRes
-    open protected val layoutId: Int = 0
-
-    open protected fun onLoadContentView(): View {
+    open protected fun onCreateView(): View {
         return FrameLayout(activity)
     }
 
@@ -68,11 +63,7 @@ abstract class Widget : BaseWidget() {
         currentState == WidgetState.CREATED
 
         onCreate()
-        if (layoutId > 0) {
-            layoutInflater.inflate(layoutId, params.parentView, false)
-        } else {
-            contentView = onLoadContentView()
-        }
+        contentView = onCreateView()
         if (params.parentView != null) {
             this.parentView = params.parentView
             if (params.index >= 0) {
@@ -86,7 +77,7 @@ abstract class Widget : BaseWidget() {
             this.parentView = contentView.parent as ViewGroup?
         }
 
-        createView()
+        startView()
 
         if (isPageWidget) {
             when (activity.lifecycle.currentState) {
@@ -176,12 +167,12 @@ abstract class Widget : BaseWidget() {
     }
 
 
-    open fun onCreatedView() {
-        Log.d(TAG, "widget onCreatedView ${this}")
+    open fun onStartView() {
+        Log.d(TAG, "widget onStartView ${this}")
     }
 
-    open fun onDestroyView() {
-        Log.d(TAG, "widget onDestroyView ${this}")
+    open fun onStopView() {
+        Log.d(TAG, "widget onStopView ${this}")
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -224,10 +215,10 @@ abstract class Widget : BaseWidget() {
 
     }
 
-    private fun createView() {
-        if (currentState == WidgetState.CREATED || currentState == WidgetState.DESTROY_VIEW) {
-            currentState = WidgetState.CREATED_VIEW
-            onCreatedView()
+    private fun startView() {
+        if (currentState == WidgetState.CREATED || currentState == WidgetState.STOP_VIEW) {
+            currentState = WidgetState.STARTED_VIEW
+            onStartView()
         }
         if (isPageWidget) {
             pageAllWidgets.forEach {
@@ -238,7 +229,7 @@ abstract class Widget : BaseWidget() {
     }
 
     private fun start() {
-        if (currentState == WidgetState.CREATED_VIEW || currentState == WidgetState.STOP) {
+        if (currentState == WidgetState.STARTED_VIEW || currentState == WidgetState.STOP) {
             currentState = WidgetState.STARTED
 
             onStart()
@@ -286,11 +277,11 @@ abstract class Widget : BaseWidget() {
     }
 
 
-    private fun destroyView() {
+    private fun stopView() {
 
-        if (currentState == WidgetState.STOP || currentState == WidgetState.CREATED_VIEW) {
-            currentState = WidgetState.DESTROY_VIEW
-            onDestroyView()
+        if (currentState == WidgetState.STOP || currentState == WidgetState.STARTED_VIEW) {
+            currentState = WidgetState.STOP_VIEW
+            onStopView()
         }
         if (isPageWidget) {
             pageAllWidgets.forEach {
@@ -304,7 +295,7 @@ abstract class Widget : BaseWidget() {
     private fun destroy() {
 
         //destroyView()
-        if (currentState == WidgetState.DESTROY_VIEW) {
+        if (currentState == WidgetState.STOP_VIEW) {
             currentState = WidgetState.DESTROYED
             onDestroy()
         }
@@ -326,7 +317,7 @@ abstract class Widget : BaseWidget() {
             return
         }
 
-        if (currentState == WidgetState.DESTROY_VIEW || currentState == WidgetState.CREATED) {
+        if (currentState == WidgetState.STOP_VIEW || currentState == WidgetState.CREATED) {
 
             if (contentView != null) {
 
@@ -336,7 +327,7 @@ abstract class Widget : BaseWidget() {
                     activity.setContentView(contentView)
                 }
             }
-            createView()
+            startView()
 
         }
     }
@@ -365,27 +356,27 @@ abstract class Widget : BaseWidget() {
         }
 
         when (currentState) {
-            WidgetState.CREATED_VIEW -> {
-                destroyView()
+            WidgetState.STARTED_VIEW -> {
+                stopView()
 
             }
             WidgetState.STARTED -> {
                 stop()
-                destroyView()
+                stopView()
 
             }
             WidgetState.RESUMED -> {
                 pause()
                 stop()
-                destroyView()
+                stopView()
             }
             WidgetState.PAUSE -> {
 
                 stop()
-                destroyView()
+                stopView()
             }
             WidgetState.STOP -> {
-                destroyView()
+                stopView()
             }
         }
 
@@ -398,7 +389,7 @@ abstract class Widget : BaseWidget() {
                 create()
             }
             WidgetAction.ACTION_CREATED_VIEW -> {
-                createView()
+                startView()
             }
             WidgetAction.ACTION_START -> {
                 start()
@@ -413,7 +404,7 @@ abstract class Widget : BaseWidget() {
                 stop()
             }
             WidgetAction.ACTION_DESTROY_VIEW -> {
-                destroyView()
+                stopView()
             }
             WidgetAction.ACTION_PAGE_LEAVE -> {
                 pageWidgetLeave()
@@ -457,31 +448,31 @@ abstract class Widget : BaseWidget() {
         isRemove = true
         super.removeSelf()
         when (currentState) {
-            WidgetState.CREATED_VIEW -> {
-                destroyView()
+            WidgetState.STARTED_VIEW -> {
+                stopView()
                 destroy()
 
             }
             WidgetState.STARTED -> {
                 stop()
-                destroyView()
+                stopView()
                 destroy()
 
             }
             WidgetState.RESUMED -> {
                 pause()
                 stop()
-                destroyView()
+                stopView()
                 destroy()
 
             }
             WidgetState.PAUSE -> {
                 stop()
-                destroyView()
+                stopView()
                 destroy()
             }
             WidgetState.STOP -> {
-                destroyView()
+                stopView()
                 destroy()
             }
             else -> {

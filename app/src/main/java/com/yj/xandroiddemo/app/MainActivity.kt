@@ -1,5 +1,6 @@
 package com.yj.xandroiddemo.app
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -18,7 +19,6 @@ class MainActivity : WidgetActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
 
 
         /* observeEvent(object :WidgetEventObserve<String>{
@@ -73,13 +73,13 @@ class MainActivity : WidgetActivity() {
     class Widget1 : Widget() {
         private lateinit var binding: Widget1Binding
 
-        override fun onLoadContentView(): View {
+        override fun onCreateView(): View {
             binding = Widget1Binding.inflate(layoutInflater)
             return binding.root
         }
 
-        override fun onCreatedView() {
-            super.onCreatedView()
+        override fun onStartView() {
+            super.onStartView()
             binding.btn1.setOnClickListener({
                 startPageWidget(Widget2()).start()
             })
@@ -90,7 +90,7 @@ class MainActivity : WidgetActivity() {
 
     class Widget2 : Widget() {
         private lateinit var binding: Widget2Binding
-        override fun onLoadContentView(): View {
+        override fun onCreateView(): View {
             binding = Widget2Binding.inflate(layoutInflater)
             binding.btn1.setOnClickListener({
                 startPageWidget(Widget3()).start()
@@ -98,28 +98,26 @@ class MainActivity : WidgetActivity() {
             binding.back.setOnClickListener {
                 backPressed()
             }
+            binding.jumNextActivity.setOnClickListener {
+                activity.startActivity(Intent(activity, TestActivity1::class.java))
+            }
             loadChildWidget(binding.box, Widget2Child())
             return binding.root
         }
 
-        override fun onCreatedView() {
-            super.onCreatedView()
 
-
-
-        }
     }
 
     class Widget2Child : Widget() {
         private lateinit var binding: Widget2Child1Binding
         private var num = 1
-        override fun onLoadContentView(): View {
+        override fun onCreateView(): View {
             binding = Widget2Child1Binding.inflate(layoutInflater)
             return binding.root
         }
 
-        override fun onCreatedView() {
-            super.onCreatedView()
+        override fun onStartView() {
+            super.onStartView()
             binding.text.text = "Widget2Child  num=${num}"
             binding.text.setOnClickListener {
                 num++;
@@ -131,13 +129,13 @@ class MainActivity : WidgetActivity() {
 
     class Widget3 : Widget() {
         private lateinit var binding: Widget3Binding
-        override fun onLoadContentView(): View {
+        override fun onCreateView(): View {
             binding = Widget3Binding.inflate(layoutInflater)
             return binding.root
         }
 
-        override fun onCreatedView() {
-            super.onCreatedView()
+        override fun onStartView() {
+            super.onStartView()
             binding.back.setOnClickListener {
                 backPressed()
             }
