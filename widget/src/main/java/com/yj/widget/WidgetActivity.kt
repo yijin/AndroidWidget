@@ -32,12 +32,18 @@ open class WidgetActivity : ComponentActivity() {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (needSaveWidgets()) {
+
             val viewModel = ViewModelProvider(this).get(WidgetActivityViewModel::class.java)
+
             if (viewModel.widgetManager == null) {
                 hasRestored = false
                 widgetManager = WidgetManager()
-                widgetManager.initWidgetManager(this)
+                widgetManager.initWidgetManager(this, savedInstanceState)
                 viewModel.widgetManager = widgetManager
+                if (savedInstanceState != null) {
+                    hasRestored = true
+                    widgetManager.restoreNoConfigurationChange(savedInstanceState)
+                }
 
             } else {
                 hasRestored = true
@@ -45,36 +51,25 @@ open class WidgetActivity : ComponentActivity() {
                 if (widgetManager.activity != null) {
                     widgetManager.activity.lifecycle.removeObserver(widgetManager)
                 }
-                widgetManager.initWidgetManager(this)
-                // widgetManager.initWidgetManager(this)
+                widgetManager.initWidgetManager(this, savedInstanceState)
+                widgetManager.restoreConfigurationChange()
             }
         } else {
             widgetManager = WidgetManager()
-            widgetManager.initWidgetManager(this)
+            widgetManager.initWidgetManager(this, savedInstanceState)
         }
 
 
-
-        if (hasRestored) {
-
-
-            if (widgetManager.topPageWidget() != null) {
-
-
-                widgetManager.restore()
-
-            }
-
-        }
     }
+
 
     open fun needSaveWidgets(): Boolean {
         return true
     }
 
 
-    fun setPageWidget(widget: Widget) {
-        widgetManager.setActivityPage(widget)
+    fun setPageWidget(widget: Class<out Widget>, bundle: Bundle? = null) {
+        widgetManager.setActivityPage(widget, bundle)
     }
 
     fun loadWidget(parentView: ViewGroup, widget: Widget) {

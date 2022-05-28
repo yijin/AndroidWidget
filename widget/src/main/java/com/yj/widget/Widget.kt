@@ -9,23 +9,26 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.FrameLayout
+import androidx.annotation.AnimRes
 import androidx.annotation.LayoutRes
 import androidx.lifecycle.*
+import com.yj.widget.page.PageWidgetWrapper
 
 
 abstract class Widget : BaseWidget() {
     val layoutInflater: LayoutInflater
         get() = activity.layoutInflater
 
-    val isDestoryView: Boolean
+    val isStopView: Boolean
         get() = currentState == WidgetState.DESTROYED || currentState == WidgetState.STOP_VIEW
 
     lateinit var contentView: View
         private set
 
-    var exitAnim: Animation? = null
-        private set
+    @AnimRes
+    private var exitAnimResId = 0
 
     val isPageWidget: Boolean
         get() = this == pageWidget
@@ -56,53 +59,88 @@ abstract class Widget : BaseWidget() {
     ) {
         super.create(params)
 
-        if (!isPageWidget) {
-            params.pageWidget?.pageAllWidgets?.add(this)
-        }
-        this.exitAnim = params.exitAnim
+        params.pageWidget?.pageAllWidgets?.add(this)
         currentState == WidgetState.CREATED
 
-        onCreate()
+        onCreate(widgetManager.savedInstanceState)
         contentView = onCreateView()
         if (params.parentView != null) {
             this.parentView = params.parentView
             if (params.index >= 0) {
                 params.parentView?.addView(contentView, params.index)
-            } else if (params.attachToRoot) {
+            } else {
                 params.parentView?.addView(contentView)
             }
+        }
 
-        } else if (isPageWidget) {
+        startView()
+
+        when (pageWidget?.currentState) {
+            WidgetState.STARTED -> {
+                start()
+            }
+            WidgetState.RESUMED -> {
+                start()
+                resume()
+            }
+
+        }
+    }
+
+
+    internal fun pageCreate(
+        widgetManager: WidgetManager,
+        params: PageWidgetWrapper,
+        pageRootView: ViewGroup?,
+        attachToRoot: Boolean = true
+    ) {
+
+        initWidget(widgetManager)
+        this.exitAnimResId = params.exitAnimResId
+        this.parentView = pageRootView
+        this.pageWidget = this
+        this.currentState == WidgetState.CREATED
+        onCreate(widgetManager.savedInstanceState)
+
+        this.contentView = onCreateView()
+        if (pageRootView != null) {
+            if (attachToRoot) {
+                pageRootView.addView(contentView)
+            }
+        } else {
             activity.setContentView(contentView)
             this.parentView = contentView.parent as ViewGroup?
         }
 
         startView()
 
-        if (isPageWidget) {
-            when (activity.lifecycle.currentState) {
-                Lifecycle.State.STARTED -> {
-                    start()
-
-                }
-                Lifecycle.State.RESUMED -> {
-                    start()
-                    resume()
-                }
+        when (activity.lifecycle.currentState) {
+            Lifecycle.State.STARTED -> {
+                start()
 
             }
-        } else {
-            when (pageWidget?.currentState) {
-                WidgetState.STARTED -> {
-                    start()
-                }
-                WidgetState.RESUMED -> {
-                    start()
-                    resume()
-                }
-
+            Lifecycle.State.RESUMED -> {
+                start()
+                resume()
             }
+
         }
+    }
+
+    internal fun pageRestore(
+        widgetManager: WidgetManager,
+        params: PageWidgetWrapper,
+        pageRootView: ViewGroup?,
+    ) {
+
+        initWidget(widgetManager)
+        this.parentView = pageRootView
+        this.exitAnimResId = params.exitAnimResId
+        this.pageWidget = this
+        this.currentState == WidgetState.CREATED
+        onCreate(widgetManager.savedInstanceState)
+        this.contentView = onCreateView()
+
     }
 
 
@@ -155,12 +193,13 @@ abstract class Widget : BaseWidget() {
 
 
     fun replaceWidget(widget: Widget): Boolean {
-        val anim = exitAnim
+
         val isPage = isPageWidget
+        if (isPage) {
+
+        }
         if (widgetManager.replaceWidget(this, widget)) {
-            if (isPage && anim != null) {
-                widget.exitAnim = anim
-            }
+
             return true
         }
         return false
@@ -205,7 +244,7 @@ abstract class Widget : BaseWidget() {
     private fun create() {
         if (currentState != WidgetState.CREATED) {
             currentState = WidgetState.CREATED
-            onCreate()
+            onCreate(widgetManager.savedInstanceState)
         }
         if (isPageWidget) {
             pageAllWidgets.forEach {
@@ -441,6 +480,7 @@ abstract class Widget : BaseWidget() {
         }
     }
 
+    @SuppressLint("ResourceType")
     internal fun removeSelf(noAnim: Boolean) {
         if (isRemove) {
             return
@@ -480,8 +520,9 @@ abstract class Widget : BaseWidget() {
 
             }
         }
-        if (exitAnim != null && !noAnim) {
+        if (exitAnimResId > 0 && !noAnim) {
 
+            val exitAnim = AnimationUtils.loadAnimation(activity, exitAnimResId)
             exitAnim?.setAnimationListener(object : Animation.AnimationListener {
                 override fun onAnimationStart(p0: Animation?) {
 

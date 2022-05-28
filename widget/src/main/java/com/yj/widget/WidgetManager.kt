@@ -15,9 +15,12 @@ class WidgetManager : DefaultLifecycleObserver {
 
     lateinit var activity: WidgetActivity
 
-    fun initWidgetManager(activity: WidgetActivity) {
+    var savedInstanceState: Bundle? = null
+
+    fun initWidgetManager(activity: WidgetActivity, savedInstanceState: Bundle?) {
 
         this.activity = activity
+        this.savedInstanceState = savedInstanceState
         activity.lifecycle.addObserver(this)
     }
 
@@ -100,8 +103,12 @@ class WidgetManager : DefaultLifecycleObserver {
         return pageWidgetManager.topPageWidget()
     }
 
-    fun restore() {
-        pageWidgetManager.restore()
+    fun pageSize(): Int {
+        return pageWidgetManager.pageSize()
+    }
+
+    fun restoreConfigurationChange() {
+        pageWidgetManager.restoreConfigurationChange()
         activityDataWidgets.forEach {
             it.postAction(WidgetAction.ACTION_CREATED)
         }
@@ -109,6 +116,10 @@ class WidgetManager : DefaultLifecycleObserver {
             it.postAction(WidgetAction.ACTION_CREATED)
         }
 
+    }
+
+    fun restoreNoConfigurationChange(savedInstanceState: Bundle) {
+        pageWidgetManager.restoreNoConfigurationChange(savedInstanceState)
     }
 
 
@@ -142,7 +153,7 @@ class WidgetManager : DefaultLifecycleObserver {
         newWidget: Widget
     ): Boolean {
         if (oldWidget.isPageWidget) {
-            return pageWidgetManager.replaceWidget(oldWidget, newWidget)
+            return throw RuntimeException("PageWidget cannot replace")
 
         } else {
             var index = -1;
@@ -161,53 +172,57 @@ class WidgetManager : DefaultLifecycleObserver {
         }
     }
 
-    internal fun setActivityPage(widget: Widget) {
-        pageWidgetManager.startClearAll(widget).startNoAnim()
+    internal fun setActivityPage(classType: Class<out Widget>, bundle: Bundle?) {
+        pageWidgetManager.startClearAll(classType, bundle).startNoAnim()
     }
 
     internal fun startPageWidget(
-        widget: Widget
+        classType: Class<out Widget>, bundle: Bundle?
     ): PageWidgetStartBuilder {
-        return pageWidgetManager.start(widget)
+        return pageWidgetManager.start(classType, bundle)
     }
 
 
     internal fun startPageWidgetClearAll(
-        widget: Widget
+        classType: Class<out Widget>, bundle: Bundle?
     ): PageWidgetStartBuilder {
-        return pageWidgetManager.startClearAll(widget)
+        return pageWidgetManager.startClearAll(classType, bundle)
     }
 
-    fun backFirstWidget(classType: Class<*>): Boolean {
+    fun backFirstWidget(classType: Class<out Widget>): Boolean {
         return pageWidgetManager.backFirstWidget(classType)
     }
 
-    fun backLastWidget(classType: Class<*>): Boolean {
+    fun backLastWidget(classType: Class<out Widget>): Boolean {
         return pageWidgetManager.backLastWidget(classType)
     }
 
     internal fun startPageWidgetSingleTask(
-        widget: Widget
+        classType: Class<out Widget>, bundle: Bundle?
     ): PageWidgetStartBuilder {
-        return pageWidgetManager.startSingleTask(widget)
+        return pageWidgetManager.startSingleTask(classType, bundle)
     }
 
     internal fun startPageWidgetSingleTop(
-        widget: Widget
+        classType: Class<out Widget>, bundle: Bundle?
     ): PageWidgetStartBuilder {
-        return pageWidgetManager.startSingleTop(widget)
+        return pageWidgetManager.startSingleTop(classType, bundle)
     }
 
 
     fun remove(widget: BaseWidget) {
         activtyWidgets.remove(widget)
         activityDataWidgets.remove(widget)
-        pageWidgetManager.widgetList.remove(widget)
+        if (widget is Widget) {
+            if (widget.isPageWidget) {
+                pageWidgetManager.removePage(widget)
+            }
+        }
     }
 
     fun containsPageWidget(widget: Widget): Boolean {
 
-        return pageWidgetManager.widgetList.contains(widget)
+        return pageWidgetManager.containsPageWidget(widget)
     }
 
 
@@ -226,7 +241,7 @@ class WidgetManager : DefaultLifecycleObserver {
 
     fun onSaveInstanceState(outState: Bundle) {
 
-        pageWidgetManager.topPageWidget()?.onSaveInstanceState(outState)
+        pageWidgetManager.onSaveInstanceState(outState)
 
         activtyWidgets.forEach {
             it.onRestoreInstanceState(outState)
@@ -237,7 +252,7 @@ class WidgetManager : DefaultLifecycleObserver {
     }
 
     fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        pageWidgetManager.topPageWidget()?.onRestoreInstanceState(savedInstanceState)
+        pageWidgetManager.onRestoreInstanceState(savedInstanceState)
 
         activtyWidgets.forEach {
             it.onRestoreInstanceState(savedInstanceState)
@@ -251,7 +266,7 @@ class WidgetManager : DefaultLifecycleObserver {
         if (widget == null) {
             return false
         }
-        return pageWidgetManager.widgetList.peekLast() == widget
+        return pageWidgetManager.topPageWidget() == widget
     }
 
     fun onBackPressed(): Boolean {

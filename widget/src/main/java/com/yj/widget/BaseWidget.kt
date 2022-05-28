@@ -59,11 +59,14 @@ abstract class BaseWidget {
     val context: Context
         get() = activity
 
+    fun initWidget(widgetManager: WidgetManager) {
+        this.widgetManager = widgetManager
+    }
 
     open internal fun create(
         params: WidgetCreateParams
     ) {
-        this.widgetManager = params.widgetManager
+        initWidget(params.widgetManager)
         this.pageWidget = params.pageWidget
         this.parentWidget = params.parentWidget
         if (this.parentWidget != null) {
@@ -73,7 +76,7 @@ abstract class BaseWidget {
     }
 
 
-    open fun onCreate() {
+    open fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "widget onCreate ${this}")
     }
 
@@ -124,29 +127,38 @@ abstract class BaseWidget {
     }
 
 
-    fun startPageWidget(widget: Widget): PageWidgetStartBuilder {
-        return widgetManager.startPageWidget(widget)
+    fun startPageWidget(widget: Class<out Widget>, bundle: Bundle? = null): PageWidgetStartBuilder {
+        return widgetManager.startPageWidget(widget, bundle)
     }
 
-    fun startPageWidgetClearAll(widget: Widget): PageWidgetStartBuilder {
-        return widgetManager.startPageWidgetClearAll(widget)
+    fun startPageWidgetClearAll(
+        widget: Class<out Widget>,
+        bundle: Bundle? = null
+    ): PageWidgetStartBuilder {
+        return widgetManager.startPageWidgetClearAll(widget, bundle)
     }
 
-    fun backFirstWidget(classType: Class<*>): Boolean {
+    fun backFirstWidget(classType: Class<out Widget>): Boolean {
         return widgetManager.backFirstWidget(classType)
     }
 
-    fun backLastWidget(classType: Class<*>): Boolean {
+    fun backLastWidget(classType: Class<out Widget>): Boolean {
         return widgetManager.backLastWidget(classType)
     }
 
 
-    fun startPageWidgetSingleTask(widget: Widget): PageWidgetStartBuilder {
-        return widgetManager.startPageWidgetSingleTask(widget)
+    fun startPageWidgetSingleTask(
+        widget: Class<out Widget>,
+        bundle: Bundle? = null
+    ): PageWidgetStartBuilder {
+        return widgetManager.startPageWidgetSingleTask(widget, bundle)
     }
 
-    fun startPageWidgetSingleTop(widget: Widget): PageWidgetStartBuilder {
-        return widgetManager.startPageWidgetSingleTop(widget)
+    fun startPageWidgetSingleTop(
+        widget: Class<out Widget>,
+        bundle: Bundle? = null
+    ): PageWidgetStartBuilder {
+        return widgetManager.startPageWidgetSingleTop(widget, bundle)
     }
 
 

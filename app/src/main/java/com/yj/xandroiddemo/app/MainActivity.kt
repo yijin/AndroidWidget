@@ -57,16 +57,14 @@ class MainActivity : WidgetActivity() {
 
 
             loadDataWidget(MyDataWidget())
-            setPageWidget(Widget1())
+            setPageWidget(Widget1::class.java)
         }
 
 
     }
 
     class MyDataWidget : DataWidget() {
-        override fun onCreate() {
-            super.onCreate()
-        }
+       
     }
 
 
@@ -81,7 +79,7 @@ class MainActivity : WidgetActivity() {
         override fun onStartView() {
             super.onStartView()
             binding.btn1.setOnClickListener({
-                startPageWidget(Widget2()).start()
+                startPageWidget(Widget2::class.java).start()
             })
 
 
@@ -93,7 +91,7 @@ class MainActivity : WidgetActivity() {
         override fun onCreateView(): View {
             binding = Widget2Binding.inflate(layoutInflater)
             binding.btn1.setOnClickListener({
-                startPageWidget(Widget3()).start()
+                startPageWidget(Widget3::class.java).start()
             })
             binding.back.setOnClickListener {
                 backPressed()
@@ -141,7 +139,7 @@ class MainActivity : WidgetActivity() {
             }
             binding.backWidget1.setOnClickListener {
                 //backLastWidget(Widget1::class.java)
-                startPageWidgetSingleTask(Widget1()).start()
+                startPageWidgetSingleTask(Widget1::class.java).start()
             }
         }
 

@@ -7,7 +7,7 @@ open class DataWidget : BaseWidget() {
         super.create(params)
         params.pageWidget?.pageAllWidgets?.add(this)
         currentState == WidgetState.CREATED
-        onCreate()
+        onCreate(widgetManager.savedInstanceState)
         if (pageWidget != null) {
             when (pageWidget?.currentState) {
                 WidgetState.STARTED -> {
@@ -36,7 +36,7 @@ open class DataWidget : BaseWidget() {
         if (currentState != WidgetState.CREATED) {
             currentState = WidgetState.CREATED
 
-            onCreate()
+            onCreate(widgetManager.savedInstanceState)
         }
     }
 

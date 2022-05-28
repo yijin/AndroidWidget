@@ -1,47 +1,125 @@
 package com.yj.widget.page
 
 
+import android.os.Bundle
+import android.util.Log
 import android.view.ViewGroup
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import androidx.lifecycle.Lifecycle
-import com.yj.widget.Widget
+import com.yj.widget.*
 import com.yj.widget.WidgetAction
-import com.yj.widget.WidgetManager
 import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 internal class PageWidgetManager(val widgetManager: WidgetManager) {
-    val widgetList = LinkedList<Widget>()
+    private val widgetData = HashMap<PageWidgetWrapper, Widget>()
+    private val pageData = LinkedList<PageWidgetWrapper>()
+
+    private var pageRootView: ViewGroup? = null
+        private set
 
 
-    fun topPageWidget(): Widget? {
+    fun onSaveInstanceState(outState: Bundle) {
 
-        return widgetList.peekLast()
-    }
-
-    fun destroy() {
-        widgetList.forEach {
-            it.postAction(WidgetAction.ACTION_ACTIVITY_DESTROY)
-
+        val list = ArrayList<PageWidgetWrapper>()
+        pageData.forEach {
+            list.add(it)
+        }
+        Log.d("yijinsb", "onSaveInstanceState ${list.isNullOrEmpty()}")
+        outState.putParcelableArrayList(PAGE_SAVAE_KAEY, list)
+        pageData.forEach {
+            getPageWidget(it).onSaveInstanceState(outState)
         }
     }
 
-    fun restore() {
+    fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        pageData.forEach {
+            getPageWidget(it).onRestoreInstanceState(savedInstanceState)
+        }
+    }
+
+    fun topPageWidget(): Widget? {
+        if (pageData.peekLast() == null) {
+            return null
+        }
+        return getPageWidget(pageData.peekLast())
+    }
+
+    fun pageSize(): Int {
+        return pageData.size
+    }
+
+    fun destroy() {
+        pageData.forEach {
+            getPageWidget(it)?.postAction(WidgetAction.ACTION_ACTIVITY_DESTROY)
+        }
+
+    }
+
+    private fun clear() {
+        destroy()
+        pageData.clear()
+        widgetData.clear()
+    }
+
+    fun restoreNoConfigurationChange(savedInstanceState: Bundle) {
+        clear()
+        val list = savedInstanceState.getParcelableArrayList<PageWidgetWrapper>(PAGE_SAVAE_KAEY)
+        if (list.isNullOrEmpty()) {
+            return
+        }
+        list.forEach {
+            pageData.add(it)
+        }
+
+        val topPage = pageData.peekLast()
+        val topWidget = topPage.widgetType.newInstance()
+        topWidget.pageCreate(widgetManager, topPage, null)
+        widgetData.put(topPage, topWidget)
+        pageRootView = topWidget.parentView
+        pageData.forEach {
+            if (it == topPage) {
+
+            } else {
+                val widget = it.widgetType.newInstance()
+                widget.pageRestore(widgetManager, it, pageRootView)
+                widgetData.put(it, widget)
+            }
+        }
+        Log.d("yijinsb", "restoreNoConfigurationChange ${topPageWidget()}")
+
+    }
+
+    fun restoreConfigurationChange() {
+        if (topPageWidget() == null) {
+            return
+        }
+
         if (topPageWidget()!!.contentView.parent == null) {
             widgetManager.activity.setContentView(topPageWidget()!!.contentView)
         } else {
             (topPageWidget()!!.contentView.parent as ViewGroup).removeAllViews()
             widgetManager.activity.setContentView(topPageWidget()!!.contentView)
         }
-        widgetList.forEach {
-
-            it.parentView = topPageWidget()!!.contentView.parent as ViewGroup?
-            if (it == topPageWidget()) {
-                it.postAction(WidgetAction.ACTION_CREATED)
-                it.postAction(WidgetAction.ACTION_CREATED_VIEW)
+        pageData.forEach {
+            val widget = getPageWidget(it)
+            widget?.parentView = topPageWidget()!!.contentView.parent as ViewGroup?
+            if (it == pageData.peekLast()) {
+                widget?.postAction(WidgetAction.ACTION_CREATED)
+                widget?.postAction(WidgetAction.ACTION_CREATED_VIEW)
             } else {
-                it.postAction(WidgetAction.ACTION_CREATED)
+                widget?.postAction(WidgetAction.ACTION_CREATED)
             }
-
         }
+
+    }
+
+    private fun getPageWidget(page: PageWidgetWrapper): Widget {
+        var widget = widgetData.get(page)
+        return widget!!
+
     }
 
     fun backPressed(): Boolean {
@@ -49,41 +127,78 @@ internal class PageWidgetManager(val widgetManager: WidgetManager) {
         ) {
             return false
         }
-        if (widgetList.size < 1) {
+        if (pageData.size < 1) {
             return false
         }
-        if (widgetList.size == 1) {
+        if (pageData.size == 1) {
             widgetManager.activity.finish()
             return true
         }
-        widgetList.get(widgetList.size - 2).postAction(WidgetAction.ACTION_PAGE_RE_CREATED_VIEW)
-        val last = widgetList.peekLast()
-        last.removeSelf(false)
-        last.postAction(WidgetAction.ACTION_PAGE_BACK)
+        var preWidget: Widget = getPageWidget(pageData.get(pageData.size - 2))
+
+        preWidget.postAction(WidgetAction.ACTION_PAGE_RE_CREATED_VIEW)
+        val last = topPageWidget()
+        last?.removeSelf(false)
+        preWidget.postAction(WidgetAction.ACTION_PAGE_BACK)
 
         return true
     }
 
-    fun backFirstWidget(classType: Class<*>): Boolean {
+
+    fun removePage(widget: Widget) {
+        widgetData.forEach {
+            if (it.value == widget) {
+                widgetData.remove(it.key)
+                pageData.remove(it.key)
+                return
+            }
+        }
+
+    }
+
+    private fun removePage(page: PageWidgetWrapper) {
+        widgetData.remove(page)
+        pageData.remove(page)
+    }
+
+    private fun addPage(widget: Widget, page: PageWidgetWrapper) {
+        pageData.add(page)
+        widgetData.put(page, widget)
+    }
+
+
+    fun containsPageWidget(widget: Widget): Boolean {
+        widgetData.forEach {
+            if (it.value == widget) {
+
+                return true
+            }
+        }
+        return false
+
+    }
+
+
+    fun backFirstWidget(classType: Class<out Widget>): Boolean {
         if (widgetManager.activity.lifecycle.currentState == Lifecycle.State.DESTROYED
         ) {
             return false
         }
         var index = -1
-        for (i in widgetList.indices) {
-            if (widgetList.get(i).javaClass == classType) {
+        for (i in pageData.indices) {
+            if (pageData.get(i).widgetType == classType) {
                 index = i
                 break
             }
         }
         if (index >= 0) {
 
-            val backCount = widgetList.size - 1 - index
+            val backCount = pageData.size - 1 - index
             if (backCount > 0) {
                 index = 1
                 while (index != backCount) {
 
-                    widgetList.get(widgetList.size - 2).removeSelf()
+                    getPageWidget(pageData.get(pageData.size - 2))?.removeSelf()
                     index++
                 }
 
@@ -96,25 +211,25 @@ internal class PageWidgetManager(val widgetManager: WidgetManager) {
         }
     }
 
-    fun backLastWidget(classType: Class<*>): Boolean {
+    fun backLastWidget(classType: Class<out Widget>): Boolean {
         if (widgetManager.activity.lifecycle.currentState == Lifecycle.State.DESTROYED
         ) {
             return false
         }
 
         var index = -1
-        for (i in widgetList.indices) {
-            if (widgetList.get(i).javaClass == classType) {
+        for (i in pageData.indices) {
+            if (pageData.get(i).widgetType == classType) {
                 index = i
             }
         }
         if (index >= 0) {
 
-            val backCount = widgetList.size - 1 - index
+            val backCount = pageData.size - 1 - index
             if (backCount > 0) {
                 index = 1
                 while (index != backCount) {
-                    widgetList.get(widgetList.size - 2).removeSelf()
+                    getPageWidget(pageData.get(pageData.size - 2))?.removeSelf()
                     index++
                 }
                 backPressed()
@@ -126,55 +241,166 @@ internal class PageWidgetManager(val widgetManager: WidgetManager) {
     }
 
 
-    fun replaceWidget(oldWidget: Widget, widget: Widget): Boolean {
+    fun start(classType: Class<out Widget>, bundle: Bundle?): PageWidgetStartBuilder {
 
         return PageWidgetStartBuilder(
             widgetManager,
-            widget,
-            this
-        )
-            .replaceWidget(oldWidget)
-
-    }
-
-    fun start(widget: Widget): PageWidgetStartBuilder {
-
-        return PageWidgetStartBuilder(
-            widgetManager,
-            widget,
+            PageWidgetWrapper(classType, bundle),
             this
         )
 
     }
 
 
-    fun startClearAll(widget: Widget): PageWidgetStartBuilder {
+    fun startClearAll(classType: Class<out Widget>, bundle: Bundle?): PageWidgetStartBuilder {
 
 
         return PageWidgetStartBuilder(
-            widgetManager, widget, this,
+            widgetManager, PageWidgetWrapper(classType, bundle), this,
             START_CLEAR_ALL
         )
 
     }
 
-    fun startSingleTask(widget: Widget): PageWidgetStartBuilder {
+    fun startSingleTask(classType: Class<out Widget>, bundle: Bundle?): PageWidgetStartBuilder {
 
 
         return PageWidgetStartBuilder(
-            widgetManager, widget, this,
+            widgetManager, PageWidgetWrapper(classType, bundle), this,
             START_SINGLE_TASK
         )
 
     }
 
-    fun startSingleTop(widget: Widget): PageWidgetStartBuilder {
-
+    fun startSingleTop(classType: Class<out Widget>, bundle: Bundle?): PageWidgetStartBuilder {
 
         return PageWidgetStartBuilder(
-            widgetManager, widget, this,
+            widgetManager, PageWidgetWrapper(classType, bundle), this,
             START_SINGLE_TOP
         )
+    }
+
+    internal fun start(page: PageWidgetWrapper, params: PageWidgetCreateParams) {
+        val removeList = ArrayList<PageWidgetWrapper>()
+
+        when (params.startType) {
+            START_CLEAR_ALL -> {
+                var index = 0
+                while (index < pageData.size) {
+                    removeList.add(pageData.get(index))
+                    index++
+                }
+            }
+            START_SINGLE_TOP -> {
+                var index = pageData.size - 1
+                while (index >= 0 && pageData.get(index).widgetType == page.widgetType
+                ) {
+                    removeList.add(pageData.get(index))
+                    index--
+                }
+            }
+            START_SINGLE_TASK -> {
+
+                var index = -1
+                for (i in pageData.indices) {
+                    if (pageData.get(i).widgetType == page.widgetType
+                    ) {
+                        index = i
+                        break
+                    }
+                }
+                if (index >= 0) {
+
+                    while (index < pageData.size) {
+                        removeList.add(pageData.get(index))
+                        index++
+                    }
+                }
+            }
+
+        }
+        removeList.forEach {
+            pageData.remove(it)
+        }
+
+        val lastWidget = topPageWidget()
+        val widget = page.widgetType.newInstance()
+        widget.pageCreate(widgetManager, page, pageRootView, params.attachToRoot)
+
+        val enterAnim = if (params.enterAnimResId > 0)
+            AnimationUtils.loadAnimation(widgetManager.activity, params.enterAnimResId) else null
+        if (widget.contentView != null && widget.parentView != null && enterAnim != null) {
+
+            if (lastWidget != null) {
+                lastWidget.postAction(WidgetAction.ACTION_PAGE_LEAVE)
+
+                enterAnim.setAnimationListener(object : Animation.AnimationListener {
+                    override fun onAnimationStart(p0: Animation?) {
+
+                    }
+
+                    override fun onAnimationEnd(p0: Animation?) {
+                        enterAnim.cancel()
+                        if (widgetManager.activity != null && !widgetManager.activity.isDestroyed) {
+
+                            pageRootView?.post {
+                                removeList.forEach {
+                                    getPageWidget(it).removeSelf()
+                                }
+                                lastWidget.parentView?.removeView(lastWidget.contentView)
+                            }
+
+
+                        }
+
+                    }
+
+                    override fun onAnimationRepeat(p0: Animation?) {
+
+                    }
+                })
+                widget.contentView.startAnimation(enterAnim)
+            } else {
+                enterAnim.setAnimationListener(object : Animation.AnimationListener {
+                    override fun onAnimationStart(p0: Animation?) {
+
+                    }
+
+                    override fun onAnimationEnd(p0: Animation?) {
+                        enterAnim.cancel()
+                        if (widgetManager.activity != null && !widgetManager.activity.isDestroyed) {
+
+                            removeList.forEach {
+                                getPageWidget(it).removeSelf()
+                            }
+
+                        }
+                    }
+
+                    override fun onAnimationRepeat(p0: Animation?) {
+
+                    }
+                })
+
+                widget.contentView.startAnimation(enterAnim)
+
+            }
+
+        } else {
+            if (lastWidget != null) {
+                lastWidget.postAction(WidgetAction.ACTION_PAGE_LEAVE)
+                lastWidget.parentView?.removeView(lastWidget.contentView)
+            }
+            removeList.forEach {
+                getPageWidget(it).removeSelf()
+            }
+        }
+
+        addPage(widget, page)
+
+        if (widget.parentView != null) {
+            pageRootView = widget.parentView
+        }
     }
 
 
@@ -183,6 +409,7 @@ internal class PageWidgetManager(val widgetManager: WidgetManager) {
         val START_CLEAR_ALL = 1
         val START_SINGLE_TOP = 2
         val START_SINGLE_TASK = 3
+        private val PAGE_SAVAE_KAEY = "widget_page_save"
     }
 
 
