@@ -72,17 +72,6 @@ open class WidgetActivity : ComponentActivity() {
         widgetManager.setActivityPage(widget, bundle)
     }
 
-    fun loadWidget(parentView: ViewGroup, widget: Widget) {
-        widgetManager.loadActivityWidget(parentView, widget)
-    }
-
-    fun loadWidget(resId: Int, widget: Widget) {
-        widgetManager.loadActivityWidget(findViewById(resId), widget)
-    }
-
-    fun loadDataWidget(widget: DataWidget) {
-        widgetManager.loadActivityDataWidget(widget)
-    }
 
 
     override fun onConfigurationChanged(newConfig: Configuration) {

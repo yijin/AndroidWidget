@@ -26,16 +26,6 @@ class WidgetManager : DefaultLifecycleObserver {
 
 
     /**
-     * activity 通用的dataWidget
-     */
-    private val activityDataWidgets: MutableList<DataWidget> = ArrayList()
-
-    /**
-     * 不在pageWidget里面的widget
-     */
-    private val activtyWidgets: MutableList<Widget> = ArrayList()
-
-    /**
      * pageWidget的
      */
     private val pageWidgetManager = PageWidgetManager(this)
@@ -44,56 +34,30 @@ class WidgetManager : DefaultLifecycleObserver {
     override fun onStart(owner: LifecycleOwner) {
         super.onStart(owner)
         pageWidgetManager.topPageWidget()?.postAction(WidgetAction.ACTION_START)
-        activityDataWidgets.forEach {
-            it.postAction(WidgetAction.ACTION_START)
-        }
-        activtyWidgets.forEach {
-            it.postAction(WidgetAction.ACTION_START)
-        }
+
     }
 
     override fun onResume(owner: LifecycleOwner) {
         super.onResume(owner)
         pageWidgetManager.topPageWidget()?.postAction(WidgetAction.ACTION_RESUME)
-        activityDataWidgets.forEach {
-            it.postAction(WidgetAction.ACTION_RESUME)
-        }
-        activtyWidgets.forEach {
-            it.postAction(WidgetAction.ACTION_RESUME)
-        }
+
     }
 
     override fun onPause(owner: LifecycleOwner) {
         super.onPause(owner)
         pageWidgetManager.topPageWidget()?.postAction(WidgetAction.ACTION_PAUESE)
-        activityDataWidgets.forEach {
-            it.postAction(WidgetAction.ACTION_PAUESE)
-        }
-        activtyWidgets.forEach {
-            it.postAction(WidgetAction.ACTION_PAUESE)
-        }
+
     }
 
     override fun onStop(owner: LifecycleOwner) {
         super.onStop(owner)
         pageWidgetManager.topPageWidget()?.postAction(WidgetAction.ACTION_STOP)
-        activityDataWidgets.forEach {
-            it.postAction(WidgetAction.ACTION_STOP)
-        }
-        activtyWidgets.forEach {
-            it.postAction(WidgetAction.ACTION_STOP)
-        }
+
     }
 
     override fun onDestroy(owner: LifecycleOwner) {
         super.onDestroy(owner)
         pageWidgetManager.destroy()
-        activityDataWidgets.forEach {
-            it.postAction(WidgetAction.ACTION_DESTROY)
-        }
-        activtyWidgets.forEach {
-            it.postAction(WidgetAction.ACTION_DESTROY)
-        }
 
 
     }
@@ -109,12 +73,6 @@ class WidgetManager : DefaultLifecycleObserver {
 
     fun restoreConfigurationChange() {
         pageWidgetManager.restoreConfigurationChange()
-        activityDataWidgets.forEach {
-            it.postAction(WidgetAction.ACTION_CREATED)
-        }
-        activtyWidgets.forEach {
-            it.postAction(WidgetAction.ACTION_CREATED)
-        }
 
     }
 
@@ -124,29 +82,30 @@ class WidgetManager : DefaultLifecycleObserver {
 
 
     fun loadChild(
-        parentView: ViewGroup?,
+        parentView: ViewGroup,
         widget: Widget,
-        parentWidget: BaseWidget
+        parentWidget: Widget,
+        index: Int = -1
     ): Boolean {
-        return WidgetLoadBuilder(this, widget).setPageWidget(parentWidget.pageWidget)
-            .setParentWidget(parentWidget).setParentView(parentView).load()
+        return WidgetLoadBuilder(
+            this,
+            widget,
+            parentView,
+            parentWidget.pageWidget,
+            parentWidget
+        ).setIndex(index).load()
     }
 
     fun loadDataWidget(parentWidget: BaseWidget, widget: DataWidget): Boolean {
-        return WidgetLoadBuilder(this, widget).setPageWidget(parentWidget?.pageWidget)
-            .setParentWidget(parentWidget).load()
+        if (activity.lifecycle.currentState == Lifecycle.State.DESTROYED) {
+            return false
+        }
+        widget.create(this, parentWidget)
+        return true
+
 
     }
 
-    internal fun loadActivityDataWidget(widget: DataWidget) {
-        WidgetLoadBuilder(this, widget).load()
-        activityDataWidgets.add(widget)
-    }
-
-    internal fun loadActivityWidget(parentView: ViewGroup, widget: Widget) {
-        WidgetLoadBuilder(this, widget).setParentView(parentView).load()
-        activtyWidgets.add(widget)
-    }
 
     fun replaceWidget(
         oldWidget: Widget,
@@ -162,10 +121,11 @@ class WidgetManager : DefaultLifecycleObserver {
             }
             val builder = WidgetLoadBuilder(
                 this,
-                newWidget
-            ).setPageWidget(if (oldWidget.isPageWidget) newWidget else oldWidget.pageWidget)
-                .setParentWidget(oldWidget.parentWidget).setParentView(oldWidget.parentView)
-                .setIndex(index)
+                newWidget,
+                oldWidget.parentView!!,
+                oldWidget.pageWidget,
+                oldWidget.parentWidget as Widget
+            ).setIndex(index)
             oldWidget.removeSelf()
 
             return builder.load()
@@ -211,8 +171,7 @@ class WidgetManager : DefaultLifecycleObserver {
 
 
     fun remove(widget: BaseWidget) {
-        activtyWidgets.remove(widget)
-        activityDataWidgets.remove(widget)
+
         if (widget is Widget) {
             if (widget.isPageWidget) {
                 pageWidgetManager.removePage(widget)
@@ -230,12 +189,7 @@ class WidgetManager : DefaultLifecycleObserver {
 
         pageWidgetManager.topPageWidget()?.onConfigurationChanged(newConfig)
 
-        activtyWidgets.forEach {
-            it.onConfigurationChanged(newConfig)
-        }
-        activityDataWidgets.forEach {
-            it.onConfigurationChanged(newConfig)
-        }
+
     }
 
 
@@ -243,23 +197,12 @@ class WidgetManager : DefaultLifecycleObserver {
 
         pageWidgetManager.onSaveInstanceState(outState)
 
-        activtyWidgets.forEach {
-            it.onRestoreInstanceState(outState)
-        }
-        activityDataWidgets.forEach {
-            it.onRestoreInstanceState(outState)
-        }
+
     }
 
     fun onRestoreInstanceState(savedInstanceState: Bundle) {
         pageWidgetManager.onRestoreInstanceState(savedInstanceState)
 
-        activtyWidgets.forEach {
-            it.onRestoreInstanceState(savedInstanceState)
-        }
-        activityDataWidgets.forEach {
-            it.onRestoreInstanceState(savedInstanceState)
-        }
     }
 
     fun inTopPageWidget(widget: Widget?): Boolean {

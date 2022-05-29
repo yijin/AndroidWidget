@@ -7,11 +7,12 @@ import com.yj.widget.page.PageWidgetManager.Companion.START_NORMAL
 
 data class WidgetCreateParams(
     val widgetManager: WidgetManager,
-    var widget: BaseWidget? = null,
+    val widget: Widget,
+    val parentView: ViewGroup,
+    val pageWidget: Widget,
+    val parentWidget: Widget
 ) {
-    var pageWidget: Widget? = null
-    var parentWidget: BaseWidget? = null
-    var parentView: ViewGroup? = null
+
 
     var index = -1
 

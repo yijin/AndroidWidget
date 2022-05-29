@@ -3,9 +3,14 @@ package com.yj.widget
 import androidx.lifecycle.Lifecycle
 
 open class DataWidget : BaseWidget() {
-    override fun create(params: WidgetCreateParams) {
-        super.create(params)
-        params.pageWidget?.pageAllWidgets?.add(this)
+
+    lateinit var parentWidget: BaseWidget
+
+    fun create(widgetManager: WidgetManager, parentWidget: BaseWidget) {
+        super.initWidget(widgetManager, parentWidget.pageWidget)
+        this.parentWidget = parentWidget
+        pageWidget.pageAllWidgets.add(this)
+        parentWidget.childWidgets.add(this)
         currentState == WidgetState.CREATED
         onCreate(widgetManager.savedInstanceState)
         if (pageWidget != null) {
@@ -87,6 +92,7 @@ open class DataWidget : BaseWidget() {
     }
 
     override fun removeSelf() {
+        parentWidget?.childWidgets?.remove(this)
         super.removeSelf()
 
         when (currentState) {

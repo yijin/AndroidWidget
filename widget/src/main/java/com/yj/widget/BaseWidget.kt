@@ -16,6 +16,15 @@ import com.yj.widget.page.PageWidgetStartBuilder
 
 abstract class BaseWidget {
 
+
+    open var pageBundle: Bundle? = null
+        get() {
+            return pageWidget.pageBundle
+        }
+        internal set
+
+    lateinit var pageWidget: Widget
+        private set
     val TAG = "Widget"
     var currentState: WidgetState = WidgetState.CREATED
         protected set
@@ -23,14 +32,10 @@ abstract class BaseWidget {
         get() {
             return widgetManager.activity
         }
-    var parentWidget: BaseWidget? = null
-        protected set
+
 
     protected lateinit var widgetManager: WidgetManager
         private set
-
-    var pageWidget: Widget? = null
-        protected set
 
 
     val inTopPageWidget: Boolean
@@ -59,20 +64,9 @@ abstract class BaseWidget {
     val context: Context
         get() = activity
 
-    fun initWidget(widgetManager: WidgetManager) {
+    fun initWidget(widgetManager: WidgetManager, pageWidget: Widget) {
         this.widgetManager = widgetManager
-    }
-
-    open internal fun create(
-        params: WidgetCreateParams
-    ) {
-        initWidget(params.widgetManager)
-        this.pageWidget = params.pageWidget
-        this.parentWidget = params.parentWidget
-        if (this.parentWidget != null) {
-            this.parentWidget?.childWidgets?.add(this)
-        }
-
+        this.pageWidget = pageWidget
     }
 
 
@@ -120,10 +114,6 @@ abstract class BaseWidget {
 
     fun loadChildDataWidget(widget: DataWidget): Boolean {
         return widgetManager.loadDataWidget(this, widget)
-    }
-
-    fun loadActivityDataWidget(widget: DataWidget) {
-        widgetManager.loadActivityDataWidget(widget)
     }
 
 
@@ -176,7 +166,7 @@ abstract class BaseWidget {
     }
 
     open internal fun removeSelf() {
-        parentWidget?.childWidgets?.remove(this)
+
         pageWidget?.pageAllWidgets?.remove(this)
         widgetManager.remove(this)
         removeAllChild()

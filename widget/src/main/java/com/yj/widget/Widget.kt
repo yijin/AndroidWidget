@@ -10,9 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
-import android.widget.FrameLayout
 import androidx.annotation.AnimRes
-import androidx.annotation.LayoutRes
 import androidx.lifecycle.*
 import com.yj.widget.page.PageWidgetWrapper
 
@@ -24,19 +22,22 @@ abstract class Widget : BaseWidget() {
     val isStopView: Boolean
         get() = currentState == WidgetState.DESTROYED || currentState == WidgetState.STOP_VIEW
 
-    lateinit var contentView: View
+    var contentView: View? = null
         private set
 
     @AnimRes
     private var exitAnimResId = 0
 
+
     val isPageWidget: Boolean
         get() = this == pageWidget
+    override var pageBundle: Bundle? = null
+        get() {
+            return if (isPageWidget) field else pageWidget?.pageBundle
+        }
 
 
-    open protected fun onCreateView(): View {
-        return FrameLayout(activity)
-    }
+    open protected abstract fun onCreateView(container: ViewGroup?): View
 
 
     val pageAllWidgets = ArrayList<BaseWidget>()
@@ -46,33 +47,31 @@ abstract class Widget : BaseWidget() {
         get() = contentView != null && contentView!!.visibility == View.VISIBLE
 
 
+    var parentWidget: Widget? = null
+        protected set
+
     var parentView: ViewGroup? = null
         get() {
-            return if (field != null) field else contentView.parent as ViewGroup?
+            return if (field != null) field else contentView?.parent as ViewGroup?
         }
         internal set
 
 
     @SuppressLint("ResourceType")
-    override fun create(
+    internal fun create(
         params: WidgetCreateParams
     ) {
-        super.create(params)
-
-        params.pageWidget?.pageAllWidgets?.add(this)
-        currentState == WidgetState.CREATED
-
-        onCreate(widgetManager.savedInstanceState)
-        contentView = onCreateView()
-        if (params.parentView != null) {
-            this.parentView = params.parentView
-            if (params.index >= 0) {
-                params.parentView?.addView(contentView, params.index)
-            } else {
-                params.parentView?.addView(contentView)
-            }
+        super.initWidget(params.widgetManager, params.pageWidget)
+        this.parentWidget = params.parentWidget
+        if (this.parentWidget != null) {
+            this.parentWidget?.childWidgets?.add(this)
         }
-
+        params.pageWidget?.pageAllWidgets?.add(this)
+        this.parentView = params.parentView!!
+        currentState == WidgetState.CREATED
+        onCreate(widgetManager.savedInstanceState)
+        this.contentView = onCreateView(params.parentView)
+        addView(params.index)
         startView()
 
         when (pageWidget?.currentState) {
@@ -87,29 +86,41 @@ abstract class Widget : BaseWidget() {
         }
     }
 
+    open internal fun addView(index: Int) {
+        if (this.contentView?.parent == null) {
+            if (index >= 0 && index <= parentView!!.childCount) {
+                parentView!!.addView(contentView, index)
+            } else {
+                parentView!!.addView(contentView)
+            }
+        }
+
+    }
+
 
     internal fun pageCreate(
         widgetManager: WidgetManager,
         params: PageWidgetWrapper,
-        pageRootView: ViewGroup?,
-        attachToRoot: Boolean = true
+        pageRootView: ViewGroup?
     ) {
 
-        initWidget(widgetManager)
+        initWidget(widgetManager, this)
+        this.pageBundle = pageBundle
         this.exitAnimResId = params.exitAnimResId
         this.parentView = pageRootView
-        this.pageWidget = this
         this.currentState == WidgetState.CREATED
         onCreate(widgetManager.savedInstanceState)
 
-        this.contentView = onCreateView()
-        if (pageRootView != null) {
-            if (attachToRoot) {
+        this.contentView = onCreateView(pageRootView)
+        if (this.contentView?.parent == null) {
+            if (pageRootView != null) {
                 pageRootView.addView(contentView)
+            } else {
+                activity.setContentView(contentView)
             }
-        } else {
-            activity.setContentView(contentView)
-            this.parentView = contentView.parent as ViewGroup?
+        }
+        if (this.contentView?.parent != null) {
+            this.parentView = contentView?.parent as ViewGroup?
         }
 
         startView()
@@ -133,13 +144,13 @@ abstract class Widget : BaseWidget() {
         pageRootView: ViewGroup?,
     ) {
 
-        initWidget(widgetManager)
+        initWidget(widgetManager, this)
+        this.pageBundle = pageBundle
         this.parentView = pageRootView
         this.exitAnimResId = params.exitAnimResId
-        this.pageWidget = this
         this.currentState == WidgetState.CREATED
         onCreate(widgetManager.savedInstanceState)
-        this.contentView = onCreateView()
+        this.contentView = onCreateView(pageRootView)
 
     }
 
@@ -179,24 +190,19 @@ abstract class Widget : BaseWidget() {
     }
 
 
-    fun loadChildWidget(widget: Widget): Boolean {
-        return loadChildWidget(null, widget, -1)
-    }
-
-    fun loadChildWidget(containerView: ViewGroup?, widget: Widget): Boolean {
+    fun loadChildWidget(containerView: ViewGroup, widget: Widget): Boolean {
         return loadChildWidget(containerView, widget, -1)
     }
 
-    fun loadChildWidget(containerView: ViewGroup?, widget: Widget, index: Int = -1): Boolean {
-        return widgetManager.loadChild(containerView, widget, this)
+    fun loadChildWidget(containerView: ViewGroup, widget: Widget, index: Int = -1): Boolean {
+        return widgetManager.loadChild(containerView, widget, this, index)
     }
 
 
     fun replaceWidget(widget: Widget): Boolean {
 
-        val isPage = isPageWidget
-        if (isPage) {
-
+        if (isPageWidget) {
+            return throw RuntimeException("PageWidget cannot replace")
         }
         if (widgetManager.replaceWidget(this, widget)) {
 
@@ -486,6 +492,7 @@ abstract class Widget : BaseWidget() {
             return
         }
         isRemove = true
+        parentWidget?.childWidgets?.remove(this)
         super.removeSelf()
         when (currentState) {
             WidgetState.STARTED_VIEW -> {
@@ -538,7 +545,7 @@ abstract class Widget : BaseWidget() {
 
                 }
             })
-            contentView.startAnimation(exitAnim)
+            contentView?.startAnimation(exitAnim)
         } else {
             parentView?.removeView(contentView)
         }

@@ -97,15 +97,15 @@ internal class PageWidgetManager(val widgetManager: WidgetManager) {
             return
         }
 
-        if (topPageWidget()!!.contentView.parent == null) {
+        if (topPageWidget()!!.contentView?.parent == null) {
             widgetManager.activity.setContentView(topPageWidget()!!.contentView)
         } else {
-            (topPageWidget()!!.contentView.parent as ViewGroup).removeAllViews()
+            (topPageWidget()!!.contentView?.parent as ViewGroup).removeAllViews()
             widgetManager.activity.setContentView(topPageWidget()!!.contentView)
         }
         pageData.forEach {
             val widget = getPageWidget(it)
-            widget?.parentView = topPageWidget()!!.contentView.parent as ViewGroup?
+            widget?.parentView = topPageWidget()!!.contentView?.parent as ViewGroup?
             if (it == pageData.peekLast()) {
                 widget?.postAction(WidgetAction.ACTION_CREATED)
                 widget?.postAction(WidgetAction.ACTION_CREATED_VIEW)
@@ -325,7 +325,7 @@ internal class PageWidgetManager(val widgetManager: WidgetManager) {
 
         val lastWidget = topPageWidget()
         val widget = page.widgetType.newInstance()
-        widget.pageCreate(widgetManager, page, pageRootView, params.attachToRoot)
+        widget.pageCreate(widgetManager, page, pageRootView)
 
         val enterAnim = if (params.enterAnimResId > 0)
             AnimationUtils.loadAnimation(widgetManager.activity, params.enterAnimResId) else null
@@ -359,7 +359,7 @@ internal class PageWidgetManager(val widgetManager: WidgetManager) {
 
                     }
                 })
-                widget.contentView.startAnimation(enterAnim)
+                widget.contentView?.startAnimation(enterAnim)
             } else {
                 enterAnim.setAnimationListener(object : Animation.AnimationListener {
                     override fun onAnimationStart(p0: Animation?) {
@@ -382,7 +382,7 @@ internal class PageWidgetManager(val widgetManager: WidgetManager) {
                     }
                 })
 
-                widget.contentView.startAnimation(enterAnim)
+                widget.contentView?.startAnimation(enterAnim)
 
             }
 

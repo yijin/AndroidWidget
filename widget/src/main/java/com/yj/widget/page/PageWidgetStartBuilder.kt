@@ -18,12 +18,6 @@ class PageWidgetStartBuilder internal constructor(
         PageWidgetCreateParams(widgetManager, startType)
 
 
-    fun setAttachToRoot(attachToRoot: Boolean): PageWidgetStartBuilder {
-        params.attachToRoot = attachToRoot
-        return this
-    }
-
-
     fun start(@AnimRes enterAnimResId: Int, @AnimRes exitAnimResId: Int): Boolean {
         if (
             widgetManager.activity.lifecycle.currentState == Lifecycle.State.DESTROYED

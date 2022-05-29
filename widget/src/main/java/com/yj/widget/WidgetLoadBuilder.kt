@@ -5,31 +5,19 @@ import androidx.lifecycle.Lifecycle
 
 internal class WidgetLoadBuilder internal constructor(
     val widgetManager: WidgetManager,
-    val widget: BaseWidget,
+    val widget: Widget,
+    val parentView: ViewGroup,
+    val pageWidget: Widget,
+    val parentWidget: Widget
 
-    ) {
+) {
 
     val params: WidgetCreateParams =
-        WidgetCreateParams(widgetManager, widget)
+        WidgetCreateParams(widgetManager, widget, parentView, pageWidget, parentWidget)
 
-
-    fun setPageWidget(pageWidget: Widget?): WidgetLoadBuilder {
-        params.pageWidget = pageWidget
-        return this
-    }
 
     fun setIndex(index: Int): WidgetLoadBuilder {
         params.index = index
-        return this
-    }
-
-    fun setParentWidget(parentWidget: BaseWidget?): WidgetLoadBuilder {
-        params.parentWidget = parentWidget
-        return this
-    }
-
-    fun setParentView(parentView: ViewGroup?): WidgetLoadBuilder {
-        params.parentView = parentView
         return this
     }
 

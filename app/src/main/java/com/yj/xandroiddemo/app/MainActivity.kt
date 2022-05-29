@@ -1,10 +1,13 @@
 package com.yj.xandroiddemo.app
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import com.yj.widget.DataWidget
+import com.yj.widget.UiWidget
 import com.yj.widget.Widget
 import com.yj.widget.WidgetActivity
 import com.yj.widget.event.WidgetEventObserve
@@ -56,7 +59,6 @@ class MainActivity : WidgetActivity() {
         } else {
 
 
-            loadDataWidget(MyDataWidget())
             setPageWidget(Widget1::class.java)
         }
 
@@ -64,31 +66,26 @@ class MainActivity : WidgetActivity() {
     }
 
     class MyDataWidget : DataWidget() {
-       
+
     }
 
 
     class Widget1 : Widget() {
         private lateinit var binding: Widget1Binding
 
-        override fun onCreateView(): View {
+        override fun onCreateView(container: ViewGroup?): View {
             binding = Widget1Binding.inflate(layoutInflater)
-            return binding.root
-        }
-
-        override fun onStartView() {
-            super.onStartView()
             binding.btn1.setOnClickListener({
                 startPageWidget(Widget2::class.java).start()
             })
-
-
+            return binding.root
         }
+
     }
 
     class Widget2 : Widget() {
         private lateinit var binding: Widget2Binding
-        override fun onCreateView(): View {
+        override fun onCreateView(container: ViewGroup?): View {
             binding = Widget2Binding.inflate(layoutInflater)
             binding.btn1.setOnClickListener({
                 startPageWidget(Widget3::class.java).start()
@@ -99,41 +96,41 @@ class MainActivity : WidgetActivity() {
             binding.jumNextActivity.setOnClickListener {
                 activity.startActivity(Intent(activity, TestActivity1::class.java))
             }
-            loadChildWidget(binding.box, Widget2Child())
+            loadChildWidget(
+                binding.box,
+                Widget2Child()
+                    .margin(30)
+                    .backgroundColor(Color.BLUE)
+                    .width(800)
+                    .padding(30)
+                    .weight(1f).get()
+            )
             return binding.root
         }
 
 
     }
 
-    class Widget2Child : Widget() {
+    class Widget2Child(val name: String = "", buf: Int = 0) : UiWidget() {
         private lateinit var binding: Widget2Child1Binding
         private var num = 1
-        override fun onCreateView(): View {
+        override fun onCreateView(container: ViewGroup?): View {
             binding = Widget2Child1Binding.inflate(layoutInflater)
-            return binding.root
-        }
-
-        override fun onStartView() {
-            super.onStartView()
             binding.text.text = "Widget2Child  num=${num}"
             binding.text.setOnClickListener {
                 num++;
                 binding.text.text = "Widget2Child  num=${num}"
             }
+            return binding.root
         }
+
 
     }
 
     class Widget3 : Widget() {
         private lateinit var binding: Widget3Binding
-        override fun onCreateView(): View {
+        override fun onCreateView(container: ViewGroup?): View {
             binding = Widget3Binding.inflate(layoutInflater)
-            return binding.root
-        }
-
-        override fun onStartView() {
-            super.onStartView()
             binding.back.setOnClickListener {
                 backPressed()
             }
@@ -141,7 +138,9 @@ class MainActivity : WidgetActivity() {
                 //backLastWidget(Widget1::class.java)
                 startPageWidgetSingleTask(Widget1::class.java).start()
             }
+            return binding.root
         }
+
 
     }
 
