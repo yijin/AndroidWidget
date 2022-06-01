@@ -14,7 +14,7 @@ data class WidgetCreateParams(
 ) {
 
 
-    var index = -1
+
 
 
 }

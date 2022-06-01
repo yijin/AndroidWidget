@@ -7,7 +7,6 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import com.yj.widget.DataWidget
-import com.yj.widget.UiWidget
 import com.yj.widget.Widget
 import com.yj.widget.WidgetActivity
 import com.yj.widget.event.WidgetEventObserve
@@ -74,6 +73,9 @@ class MainActivity : WidgetActivity() {
         private lateinit var binding: Widget1Binding
 
         override fun onCreateView(container: ViewGroup?): View {
+            if (isChangingConfigurations) {
+                return contentView!!
+            }
             binding = Widget1Binding.inflate(layoutInflater)
             binding.btn1.setOnClickListener({
                 startPageWidget(Widget2::class.java).start()
@@ -86,6 +88,9 @@ class MainActivity : WidgetActivity() {
     class Widget2 : Widget() {
         private lateinit var binding: Widget2Binding
         override fun onCreateView(container: ViewGroup?): View {
+            if (isChangingConfigurations) {
+                return contentView!!
+            }
             binding = Widget2Binding.inflate(layoutInflater)
             binding.btn1.setOnClickListener({
                 startPageWidget(Widget3::class.java).start()
@@ -111,10 +116,13 @@ class MainActivity : WidgetActivity() {
 
     }
 
-    class Widget2Child(val name: String = "", buf: Int = 0) : UiWidget() {
+    class Widget2Child(val name: String = "", buf: Int = 0) : Widget() {
         private lateinit var binding: Widget2Child1Binding
         private var num = 1
         override fun onCreateView(container: ViewGroup?): View {
+            if (isChangingConfigurations) {
+                return contentView!!
+            }
             binding = Widget2Child1Binding.inflate(layoutInflater)
             binding.text.text = "Widget2Child  num=${num}"
             binding.text.setOnClickListener {
@@ -130,12 +138,14 @@ class MainActivity : WidgetActivity() {
     class Widget3 : Widget() {
         private lateinit var binding: Widget3Binding
         override fun onCreateView(container: ViewGroup?): View {
+            if (isChangingConfigurations) {
+                return contentView!!
+            }
             binding = Widget3Binding.inflate(layoutInflater)
             binding.back.setOnClickListener {
                 backPressed()
             }
             binding.backWidget1.setOnClickListener {
-                //backLastWidget(Widget1::class.java)
                 startPageWidgetSingleTask(Widget1::class.java).start()
             }
             return binding.root

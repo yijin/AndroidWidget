@@ -24,6 +24,9 @@ class WidgetViewAddBuilder(private val widget: Widget) {
     private var backgroundColor: Int? = null
     private var backgroundResource: Int? = null
     private var background: Drawable? = NO_DRAWABLE
+    private var disableAddView = false
+    private var index = -1
+
 
     private companion object {
         val NO_DRAWABLE = object : Drawable() {
@@ -60,6 +63,16 @@ class WidgetViewAddBuilder(private val widget: Widget) {
         this.marginTop = size
         this.marginRight = size
         this.marginBottom = size
+        return this
+    }
+
+    fun disableAddView(): WidgetViewAddBuilder {
+        this.disableAddView = true
+        return this
+    }
+
+    fun index(index: Int): WidgetViewAddBuilder {
+        this.index = index
         return this
     }
 
@@ -189,9 +202,9 @@ class WidgetViewAddBuilder(private val widget: Widget) {
     }
 
 
-    internal fun add(parentView: ViewGroup, view: View, index: Int) {
+    internal fun add(parentView: ViewGroup, view: View) {
 
-        if (view.parent == null) {
+        if (view.parent == null && !disableAddView) {
             if (index != null && index!! >= 0 && index!! <= parentView.childCount) {
                 parentView.addView(view, index!!)
             } else {

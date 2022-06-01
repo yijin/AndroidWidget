@@ -17,11 +17,18 @@ import com.yj.widget.page.PageWidgetStartBuilder
 abstract class BaseWidget {
 
 
-    open var pageBundle: Bundle? = null
+    open  var pageBundle: Bundle? = null
         get() {
             return pageWidget.pageBundle
         }
         internal set
+
+    open var isChangingConfigurations: Boolean = false
+        get() {
+            return pageWidget.isChangingConfigurations
+        }
+        internal set
+
 
     lateinit var pageWidget: Widget
         private set
@@ -91,6 +98,11 @@ abstract class BaseWidget {
 
     open fun onStop() {
         Log.d(TAG, "widget onStop ${this}")
+    }
+
+
+    open fun onDestroyView() {
+        Log.d(TAG, "widget onDestroyView ${this}")
     }
 
     open fun onDestroy() {

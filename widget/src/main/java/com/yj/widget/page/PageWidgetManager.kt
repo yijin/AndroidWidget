@@ -27,7 +27,6 @@ internal class PageWidgetManager(val widgetManager: WidgetManager) {
         pageData.forEach {
             list.add(it)
         }
-        Log.d("yijinsb", "onSaveInstanceState ${list.isNullOrEmpty()}")
         outState.putParcelableArrayList(PAGE_SAVAE_KAEY, list)
         pageData.forEach {
             getPageWidget(it).onSaveInstanceState(outState)
@@ -53,7 +52,8 @@ internal class PageWidgetManager(val widgetManager: WidgetManager) {
 
     fun destroy() {
         pageData.forEach {
-            getPageWidget(it)?.postAction(WidgetAction.ACTION_ACTIVITY_DESTROY)
+            getPageWidget(it).postAction(WidgetAction.ACTION_DESTROY_VIEW)
+            getPageWidget(it).postAction(WidgetAction.ACTION_ACTIVITY_DESTROY)
         }
 
     }
@@ -84,11 +84,10 @@ internal class PageWidgetManager(val widgetManager: WidgetManager) {
 
             } else {
                 val widget = it.widgetType.newInstance()
-                widget.pageRestore(widgetManager, it, pageRootView)
+                widget.pageRestore(widgetManager, it, pageRootView, false)
                 widgetData.put(it, widget)
             }
         }
-        Log.d("yijinsb", "restoreNoConfigurationChange ${topPageWidget()}")
 
     }
 
@@ -103,15 +102,10 @@ internal class PageWidgetManager(val widgetManager: WidgetManager) {
             (topPageWidget()!!.contentView?.parent as ViewGroup).removeAllViews()
             widgetManager.activity.setContentView(topPageWidget()!!.contentView)
         }
+        pageRootView = topPageWidget()!!.parentView
         pageData.forEach {
             val widget = getPageWidget(it)
-            widget?.parentView = topPageWidget()!!.contentView?.parent as ViewGroup?
-            if (it == pageData.peekLast()) {
-                widget?.postAction(WidgetAction.ACTION_CREATED)
-                widget?.postAction(WidgetAction.ACTION_CREATED_VIEW)
-            } else {
-                widget?.postAction(WidgetAction.ACTION_CREATED)
-            }
+            widget.pageRestore(widgetManager, it, pageRootView, true)
         }
 
     }

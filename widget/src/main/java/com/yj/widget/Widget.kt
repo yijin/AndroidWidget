@@ -3,6 +3,7 @@ package com.yj.widget
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,7 +11,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import android.widget.LinearLayout
 import androidx.annotation.AnimRes
+import androidx.core.view.setPadding
 import androidx.lifecycle.*
 import com.yj.widget.page.PageWidgetWrapper
 
@@ -20,7 +23,7 @@ abstract class Widget : BaseWidget() {
         get() = activity.layoutInflater
 
     val isStopView: Boolean
-        get() = currentState == WidgetState.DESTROYED || currentState == WidgetState.STOP_VIEW
+        get() = currentState == WidgetState.DESTROYED || currentState == WidgetState.DESTROYED_VIEW
 
     var contentView: View? = null
         private set
@@ -35,6 +38,8 @@ abstract class Widget : BaseWidget() {
         get() {
             return if (isPageWidget) field else pageWidget?.pageBundle
         }
+    override var isChangingConfigurations: Boolean = false
+        get() = if (isPageWidget) field else pageWidget.isChangingConfigurations
 
 
     open protected abstract fun onCreateView(container: ViewGroup?): View
@@ -62,17 +67,28 @@ abstract class Widget : BaseWidget() {
         params: WidgetCreateParams
     ) {
         super.initWidget(params.widgetManager, params.pageWidget)
+        if (isPageWidget) {
+            isChangingConfigurations = false
+        }
         this.parentWidget = params.parentWidget
         if (this.parentWidget != null) {
             this.parentWidget?.childWidgets?.add(this)
         }
         params.pageWidget?.pageAllWidgets?.add(this)
         this.parentView = params.parentView!!
-        currentState == WidgetState.CREATED
+
         onCreate(widgetManager.savedInstanceState)
+        this.currentState = WidgetState.CREATED
         this.contentView = onCreateView(params.parentView)
-        addView(params.index)
-        startView()
+        this.currentState = WidgetState.CREATED_VIEW
+        if (viewAddBuilder != null) {
+            viewAddBuilder!!.add(parentView!!, contentView!!)
+        } else {
+            if (this.contentView?.parent == null) {
+                parentView!!.addView(contentView)
+            }
+        }
+
 
         when (pageWidget?.currentState) {
             WidgetState.STARTED -> {
@@ -86,17 +102,6 @@ abstract class Widget : BaseWidget() {
         }
     }
 
-    open internal fun addView(index: Int) {
-        if (this.contentView?.parent == null) {
-            if (index >= 0 && index <= parentView!!.childCount) {
-                parentView!!.addView(contentView, index)
-            } else {
-                parentView!!.addView(contentView)
-            }
-        }
-
-    }
-
 
     internal fun pageCreate(
         widgetManager: WidgetManager,
@@ -105,13 +110,17 @@ abstract class Widget : BaseWidget() {
     ) {
 
         initWidget(widgetManager, this)
+        if (isPageWidget) {
+            isChangingConfigurations = false
+        }
         this.pageBundle = pageBundle
         this.exitAnimResId = params.exitAnimResId
         this.parentView = pageRootView
-        this.currentState == WidgetState.CREATED
-        onCreate(widgetManager.savedInstanceState)
 
+        onCreate(widgetManager.savedInstanceState)
+        this.currentState = WidgetState.CREATED
         this.contentView = onCreateView(pageRootView)
+        this.currentState = WidgetState.CREATED_VIEW
         if (this.contentView?.parent == null) {
             if (pageRootView != null) {
                 pageRootView.addView(contentView)
@@ -123,7 +132,7 @@ abstract class Widget : BaseWidget() {
             this.parentView = contentView?.parent as ViewGroup?
         }
 
-        startView()
+
 
         when (activity.lifecycle.currentState) {
             Lifecycle.State.STARTED -> {
@@ -142,15 +151,19 @@ abstract class Widget : BaseWidget() {
         widgetManager: WidgetManager,
         params: PageWidgetWrapper,
         pageRootView: ViewGroup?,
+        isChangingConfigurations: Boolean
     ) {
 
         initWidget(widgetManager, this)
+        this.isChangingConfigurations = isChangingConfigurations
         this.pageBundle = pageBundle
         this.parentView = pageRootView
         this.exitAnimResId = params.exitAnimResId
-        this.currentState == WidgetState.CREATED
+
         onCreate(widgetManager.savedInstanceState)
+        this.currentState = WidgetState.CREATED
         this.contentView = onCreateView(pageRootView)
+        this.currentState = WidgetState.CREATED_VIEW
 
     }
 
@@ -191,11 +204,7 @@ abstract class Widget : BaseWidget() {
 
 
     fun loadChildWidget(containerView: ViewGroup, widget: Widget): Boolean {
-        return loadChildWidget(containerView, widget, -1)
-    }
-
-    fun loadChildWidget(containerView: ViewGroup, widget: Widget, index: Int = -1): Boolean {
-        return widgetManager.loadChild(containerView, widget, this, index)
+        return widgetManager.loadChild(containerView, widget, this)
     }
 
 
@@ -247,45 +256,19 @@ abstract class Widget : BaseWidget() {
         }
     }
 
-    private fun create() {
-        if (currentState != WidgetState.CREATED) {
-            currentState = WidgetState.CREATED
-            onCreate(widgetManager.savedInstanceState)
-        }
-        if (isPageWidget) {
-            pageAllWidgets.forEach {
-                it.postAction(WidgetAction.ACTION_CREATED)
-            }
-        }
-
-    }
-
-    private fun startView() {
-        if (currentState == WidgetState.CREATED || currentState == WidgetState.STOP_VIEW) {
-            currentState = WidgetState.STARTED_VIEW
-            onStartView()
-        }
-        if (isPageWidget) {
-            pageAllWidgets.forEach {
-                it.postAction(WidgetAction.ACTION_CREATED_VIEW)
-            }
-        }
-
-    }
 
     private fun start() {
-        if (currentState == WidgetState.STARTED_VIEW || currentState == WidgetState.STOP) {
-            currentState = WidgetState.STARTED
-
+        if (currentState == WidgetState.CREATED_VIEW || currentState == WidgetState.STOP) {
             onStart()
+            currentState = WidgetState.STARTED
         }
     }
 
     private fun resume() {
 
         if (currentState == WidgetState.STARTED || currentState == WidgetState.PAUSE) {
-            currentState = WidgetState.RESUMED
             onResume()
+            currentState = WidgetState.RESUMED
         }
         if (isPageWidget) {
             pageAllWidgets.forEach {
@@ -322,27 +305,25 @@ abstract class Widget : BaseWidget() {
     }
 
 
-    private fun stopView() {
-
-        if (currentState == WidgetState.STOP || currentState == WidgetState.STARTED_VIEW) {
-            currentState = WidgetState.STOP_VIEW
-            onStopView()
+    private fun destroyView() {
+        if (currentState == WidgetState.STOP || currentState == WidgetState.CREATED_VIEW) {
+            onDestroyView()
+            currentState = WidgetState.DESTROYED_VIEW
         }
         if (isPageWidget) {
             pageAllWidgets.forEach {
-                it.postAction(WidgetAction.ACTION_DESTROY_VIEW)
+                if (it is Widget) {
+                    it.postAction(WidgetAction.ACTION_DESTROY_VIEW)
+                }
             }
         }
-
     }
-
 
     private fun destroy() {
 
-        //destroyView()
-        if (currentState == WidgetState.STOP_VIEW) {
-            currentState = WidgetState.DESTROYED
+        if (currentState == WidgetState.DESTROYED_VIEW) {
             onDestroy()
+            currentState = WidgetState.DESTROYED
         }
 
 
@@ -362,18 +343,13 @@ abstract class Widget : BaseWidget() {
             return
         }
 
-        if (currentState == WidgetState.STOP_VIEW || currentState == WidgetState.CREATED) {
+        if (contentView != null) {
 
-            if (contentView != null) {
-
-                if (parentView != null) {
-                    parentView?.addView(contentView, 0)
-                } else {
-                    activity.setContentView(contentView)
-                }
+            if (parentView != null) {
+                parentView?.addView(contentView, 0)
+            } else {
+                activity.setContentView(contentView)
             }
-            startView()
-
         }
     }
 
@@ -401,28 +377,20 @@ abstract class Widget : BaseWidget() {
         }
 
         when (currentState) {
-            WidgetState.STARTED_VIEW -> {
-                stopView()
 
-            }
             WidgetState.STARTED -> {
                 stop()
-                stopView()
 
             }
             WidgetState.RESUMED -> {
                 pause()
                 stop()
-                stopView()
             }
             WidgetState.PAUSE -> {
 
                 stop()
-                stopView()
             }
-            WidgetState.STOP -> {
-                stopView()
-            }
+
         }
 
     }
@@ -430,12 +398,7 @@ abstract class Widget : BaseWidget() {
     override fun postAction(action: WidgetAction) {
 
         when (action) {
-            WidgetAction.ACTION_CREATED -> {
-                create()
-            }
-            WidgetAction.ACTION_CREATED_VIEW -> {
-                startView()
-            }
+
             WidgetAction.ACTION_START -> {
                 start()
             }
@@ -448,22 +411,26 @@ abstract class Widget : BaseWidget() {
             WidgetAction.ACTION_STOP -> {
                 stop()
             }
-            WidgetAction.ACTION_DESTROY_VIEW -> {
-                stopView()
-            }
             WidgetAction.ACTION_PAGE_LEAVE -> {
                 pageWidgetLeave()
             }
             WidgetAction.ACTION_PAGE_BACK -> {
                 pageWidgetBack()
             }
+
+            WidgetAction.ACTION_DESTROY_VIEW -> {
+                destroyView()
+            }
             WidgetAction.ACTION_DESTROY -> {
                 destroy()
             }
+
             WidgetAction.ACTION_ACTIVITY_DESTROY -> {
                 destroy()
-                parentView?.removeView(contentView)
-                parentView = null
+                if (isPageWidget) {
+                    parentView?.removeView(contentView)
+                    parentView = null
+                }
             }
             WidgetAction.ACTION_PAGE_RE_CREATED_VIEW -> {
                 pageWidgetReCreateView()
@@ -495,31 +462,34 @@ abstract class Widget : BaseWidget() {
         parentWidget?.childWidgets?.remove(this)
         super.removeSelf()
         when (currentState) {
-            WidgetState.STARTED_VIEW -> {
-                stopView()
+            WidgetState.CREATED_VIEW -> {
+                destroyView()
                 destroy()
 
             }
             WidgetState.STARTED -> {
                 stop()
-                stopView()
+                destroyView()
                 destroy()
 
             }
             WidgetState.RESUMED -> {
                 pause()
                 stop()
-                stopView()
+                destroyView()
                 destroy()
 
             }
             WidgetState.PAUSE -> {
                 stop()
-                stopView()
+                destroyView()
                 destroy()
             }
             WidgetState.STOP -> {
-                stopView()
+                destroyView()
+                destroy()
+            }
+            WidgetState.DESTROYED_VIEW -> {
                 destroy()
             }
             else -> {
@@ -555,6 +525,222 @@ abstract class Widget : BaseWidget() {
 
         removeSelf(true)
     }
+
+    private var viewAddBuilder: WidgetViewAddBuilder? = null
+
+
+    private fun initViewAddBuilder() {
+
+        if (viewAddBuilder == null) {
+            viewAddBuilder = WidgetViewAddBuilder(this)
+        }
+
+    }
+
+
+    fun margin(left: Int, top: Int, right: Int, bottom: Int): WidgetViewAddBuilder {
+        initViewAddBuilder()
+        if (contentView != null && contentView?.layoutParams is ViewGroup.MarginLayoutParams) {
+            (contentView?.layoutParams as ViewGroup.MarginLayoutParams).setMargins(
+                left,
+                top,
+                right,
+                bottom
+            )
+        }
+        return viewAddBuilder!!.margin(left, top, right, bottom)
+    }
+
+    fun disableAddView(): WidgetViewAddBuilder {
+        initViewAddBuilder()
+        return viewAddBuilder!!.disableAddView()
+    }
+
+    fun index(index: Int): WidgetViewAddBuilder {
+        initViewAddBuilder()
+        return viewAddBuilder!!.index(index)
+    }
+
+    fun margin(size: Int): WidgetViewAddBuilder {
+        initViewAddBuilder()
+        if (contentView != null && contentView?.layoutParams is ViewGroup.MarginLayoutParams) {
+            (contentView?.layoutParams as ViewGroup.MarginLayoutParams).setMargins(
+                size,
+                size,
+                size,
+                size
+            )
+        }
+        return viewAddBuilder!!.margin(size)
+
+    }
+
+    fun marginLeft(size: Int): WidgetViewAddBuilder {
+        initViewAddBuilder()
+        if (contentView != null && contentView?.layoutParams is ViewGroup.MarginLayoutParams) {
+            (contentView?.layoutParams as ViewGroup.MarginLayoutParams).leftMargin = size
+        }
+        return viewAddBuilder!!.marginLeft(size)
+    }
+
+    fun marginTop(size: Int): WidgetViewAddBuilder {
+        initViewAddBuilder()
+        if (contentView != null && contentView?.layoutParams is ViewGroup.MarginLayoutParams) {
+            (contentView?.layoutParams as ViewGroup.MarginLayoutParams).topMargin = size
+        }
+        return viewAddBuilder!!.marginTop(size)
+    }
+
+    fun marginRight(size: Int): WidgetViewAddBuilder {
+
+        initViewAddBuilder()
+        if (contentView != null && contentView?.layoutParams is ViewGroup.MarginLayoutParams) {
+            (contentView?.layoutParams as ViewGroup.MarginLayoutParams).rightMargin = size
+        }
+        return viewAddBuilder!!.marginRight(size)
+    }
+
+    fun marginBottom(size: Int): WidgetViewAddBuilder {
+
+        initViewAddBuilder()
+        if (contentView != null && contentView?.layoutParams is ViewGroup.MarginLayoutParams) {
+            (contentView?.layoutParams as ViewGroup.MarginLayoutParams).bottomMargin = size
+        }
+        return viewAddBuilder!!.marginBottom(size)
+    }
+
+    fun weight(weight: Float): WidgetViewAddBuilder {
+        initViewAddBuilder()
+        if (contentView != null && contentView?.layoutParams is LinearLayout.LayoutParams) {
+            (contentView?.layoutParams as LinearLayout.LayoutParams).weight = weight
+        }
+        return viewAddBuilder!!.weight(weight)
+    }
+
+    private fun padding(left: Int, top: Int, right: Int, bottom: Int): WidgetViewAddBuilder {
+
+        initViewAddBuilder()
+        if (contentView != null) {
+            contentView?.setPadding(left, top, right, bottom)
+        }
+        return viewAddBuilder!!.padding(left, top, right, bottom)
+    }
+
+    fun padding(size: Int): WidgetViewAddBuilder {
+        initViewAddBuilder()
+        if (contentView != null) {
+            contentView?.setPadding(size)
+        }
+        return viewAddBuilder!!.padding(size)
+    }
+
+    fun height(size: Int): WidgetViewAddBuilder {
+
+        initViewAddBuilder()
+        if (contentView != null && contentView?.layoutParams != null) {
+            contentView?.layoutParams?.height = size
+        }
+        return viewAddBuilder!!.height(size)
+    }
+
+    fun width(size: Int): WidgetViewAddBuilder {
+
+        initViewAddBuilder()
+        if (contentView != null && contentView?.layoutParams != null) {
+            contentView?.layoutParams?.width = size
+        }
+        return viewAddBuilder!!.width(size)
+    }
+
+    fun size(size: Int): WidgetViewAddBuilder {
+        initViewAddBuilder()
+        if (contentView != null && contentView?.layoutParams != null) {
+            contentView?.layoutParams?.width = size
+            contentView?.layoutParams?.height = size
+        }
+        return viewAddBuilder!!.size(size)
+    }
+
+    fun matchParent(): WidgetViewAddBuilder {
+
+        initViewAddBuilder()
+        if (contentView != null && contentView?.layoutParams != null) {
+            contentView?.layoutParams?.width = ViewGroup.LayoutParams.MATCH_PARENT
+            contentView?.layoutParams?.height = ViewGroup.LayoutParams.MATCH_PARENT
+        }
+        return viewAddBuilder!!.matchParent()
+    }
+
+    fun heightMatchParent(): WidgetViewAddBuilder {
+
+
+        initViewAddBuilder()
+        if (contentView != null && contentView?.layoutParams != null) {
+            contentView?.layoutParams?.height = ViewGroup.LayoutParams.MATCH_PARENT
+        }
+        return viewAddBuilder!!.heightMatchParent()
+    }
+
+    fun widthMatchParent(): WidgetViewAddBuilder {
+
+        initViewAddBuilder()
+        if (contentView != null && contentView?.layoutParams != null) {
+            contentView?.layoutParams?.width = ViewGroup.LayoutParams.MATCH_PARENT
+        }
+        return viewAddBuilder!!.widthMatchParent()
+    }
+
+    fun wrapContent(): WidgetViewAddBuilder {
+        initViewAddBuilder()
+        if (contentView != null && contentView?.layoutParams != null) {
+            contentView?.layoutParams?.width = ViewGroup.LayoutParams.WRAP_CONTENT
+            contentView?.layoutParams?.height = ViewGroup.LayoutParams.WRAP_CONTENT
+        }
+        return viewAddBuilder!!.wrapContent()
+    }
+
+    fun heightWrapContent(): WidgetViewAddBuilder {
+        initViewAddBuilder()
+        if (contentView != null && contentView?.layoutParams != null) {
+            contentView?.layoutParams?.height = ViewGroup.LayoutParams.WRAP_CONTENT
+        }
+        return viewAddBuilder!!.heightWrapContent()
+    }
+
+    fun widthWrapContent(): WidgetViewAddBuilder {
+        initViewAddBuilder()
+        if (contentView != null && contentView?.layoutParams != null) {
+            contentView?.layoutParams?.width = ViewGroup.LayoutParams.WRAP_CONTENT
+        }
+
+        return viewAddBuilder!!.widthWrapContent()
+    }
+
+
+    fun backgroundColor(color: Int): WidgetViewAddBuilder {
+        initViewAddBuilder()
+        if (contentView != null) {
+            contentView?.setBackgroundColor(color)
+        }
+        return viewAddBuilder!!.backgroundColor(color)
+    }
+
+    fun backgroundResource(resid: Int): WidgetViewAddBuilder {
+        initViewAddBuilder()
+        if (contentView != null) {
+            contentView?.setBackgroundResource(resid)
+        }
+        return viewAddBuilder!!.backgroundResource(resid)
+    }
+
+    fun background(background: Drawable?): WidgetViewAddBuilder {
+        initViewAddBuilder()
+        if (contentView != null) {
+            contentView?.background = background
+        }
+        return viewAddBuilder!!.background(background)
+    }
+
 }
 
 

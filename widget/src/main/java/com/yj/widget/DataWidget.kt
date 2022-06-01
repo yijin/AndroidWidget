@@ -37,27 +37,20 @@ open class DataWidget : BaseWidget() {
         }
     }
 
-    private fun create() {
-        if (currentState != WidgetState.CREATED) {
-            currentState = WidgetState.CREATED
-
-            onCreate(widgetManager.savedInstanceState)
-        }
-    }
 
     private fun start() {
         if (currentState == WidgetState.CREATED || currentState == WidgetState.STOP) {
+            onStart()
             currentState = WidgetState.STARTED
 
-            onStart()
         }
     }
 
     private fun resume() {
 
         if (currentState == WidgetState.STARTED || currentState == WidgetState.PAUSE) {
-            currentState = WidgetState.RESUMED
             onResume()
+            currentState = WidgetState.RESUMED
         }
 
     }
@@ -65,8 +58,8 @@ open class DataWidget : BaseWidget() {
     private fun pause() {
         if (currentState == WidgetState.RESUMED) {
             currentState = WidgetState.PAUSE
-
             onPause()
+
         }
 
     }
@@ -76,16 +69,17 @@ open class DataWidget : BaseWidget() {
         if (currentState == WidgetState.PAUSE) {
             currentState = WidgetState.STOP
             onStop()
+
         }
 
     }
 
 
     private fun destroy() {
-
         if (currentState == WidgetState.STOP) {
-            currentState = WidgetState.DESTROYED
             onDestroy()
+            currentState = WidgetState.DESTROYED
+
         }
 
 
@@ -127,9 +121,7 @@ open class DataWidget : BaseWidget() {
 
         when (action) {
 
-            WidgetAction.ACTION_CREATED -> {
-                create()
-            }
+
             WidgetAction.ACTION_START -> {
                 start()
             }

@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import androidx.lifecycle.*
 import com.yj.widget.page.PageWidgetManager
 import com.yj.widget.page.PageWidgetStartBuilder
-import kotlin.collections.ArrayList
 
 
 class WidgetManager : DefaultLifecycleObserver {
@@ -84,8 +83,7 @@ class WidgetManager : DefaultLifecycleObserver {
     fun loadChild(
         parentView: ViewGroup,
         widget: Widget,
-        parentWidget: Widget,
-        index: Int = -1
+        parentWidget: Widget
     ): Boolean {
         return WidgetLoadBuilder(
             this,
@@ -93,7 +91,7 @@ class WidgetManager : DefaultLifecycleObserver {
             parentView,
             parentWidget.pageWidget,
             parentWidget
-        ).setIndex(index).load()
+        ).load()
     }
 
     fun loadDataWidget(parentWidget: BaseWidget, widget: DataWidget): Boolean {
@@ -121,11 +119,11 @@ class WidgetManager : DefaultLifecycleObserver {
             }
             val builder = WidgetLoadBuilder(
                 this,
-                newWidget,
+                newWidget.index(index).get(),
                 oldWidget.parentView!!,
                 oldWidget.pageWidget,
                 oldWidget.parentWidget as Widget
-            ).setIndex(index)
+            )
             oldWidget.removeSelf()
 
             return builder.load()

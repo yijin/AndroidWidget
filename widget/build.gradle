@@ -48,6 +48,9 @@ dependencies {
     implementation AndroidX.coreKtx
     //implementation 'com.jeremyliao:live-event-bus-x:1.7.3'
     testImplementation Depend.junit
+    implementation AndroidX.appcompat
+    implementation AndroidX.pagingRuntime
     androidTestImplementation Depend.androidTestJunit
     androidTestImplementation Depend.espressoCore
+
 }

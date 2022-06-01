@@ -16,11 +16,6 @@ internal class WidgetLoadBuilder internal constructor(
         WidgetCreateParams(widgetManager, widget, parentView, pageWidget, parentWidget)
 
 
-    fun setIndex(index: Int): WidgetLoadBuilder {
-        params.index = index
-        return this
-    }
-
 
     fun load(): Boolean {
         if (widgetManager.activity.lifecycle.currentState == Lifecycle.State.DESTROYED) {
