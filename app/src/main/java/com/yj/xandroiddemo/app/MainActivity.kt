@@ -73,9 +73,7 @@ class MainActivity : WidgetActivity() {
         private lateinit var binding: Widget1Binding
 
         override fun onCreateView(container: ViewGroup?): View {
-            if (isChangingConfigurations) {
-                return contentView!!
-            }
+
             binding = Widget1Binding.inflate(layoutInflater)
             binding.btn1.setOnClickListener({
                 startPageWidget(Widget2::class.java).start()
@@ -88,9 +86,8 @@ class MainActivity : WidgetActivity() {
     class Widget2 : Widget() {
         private lateinit var binding: Widget2Binding
         override fun onCreateView(container: ViewGroup?): View {
-            if (isChangingConfigurations) {
-                return contentView!!
-            }
+            Log.d("yijin2b", "Widget2 onCreateView ")
+
             binding = Widget2Binding.inflate(layoutInflater)
             binding.btn1.setOnClickListener({
                 startPageWidget(Widget3::class.java).start()
@@ -113,16 +110,52 @@ class MainActivity : WidgetActivity() {
             return binding.root
         }
 
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
+            Log.d("yijin2b", "Widget2 onCreate ")
+        }
+
+        override fun onStart() {
+            super.onStart()
+            Log.d("yijin2b", "Widget2 onStart ")
+        }
+
+        override fun onResume() {
+            super.onResume()
+            Log.d("yijin2b", "Widget2 onResume ")
+        }
+
+        override fun onPause() {
+            super.onPause()
+            Log.d("yijin2b", "Widget2 onPause ")
+        }
+
+        override fun onStop() {
+            super.onStop()
+            Log.d("yijin2b", "Widget2 onStop ")
+        }
+
+        override fun onDestroyView() {
+            super.onDestroyView()
+            Log.d("yijin2b", "Widget2 onDestroyView ")
+        }
+
+        override fun onDestroy() {
+            super.onDestroy()
+            Log.d("yijin2b", "Widget2 onDestroy ")
+        }
+
 
     }
 
     class Widget2Child(val name: String = "", buf: Int = 0) : Widget() {
         private lateinit var binding: Widget2Child1Binding
         private var num = 1
+
+
         override fun onCreateView(container: ViewGroup?): View {
-            if (isChangingConfigurations) {
-                return contentView!!
-            }
+            Log.d("yijinsb", "Widget2Child onCreateView ")
+
             binding = Widget2Child1Binding.inflate(layoutInflater)
             binding.text.text = "Widget2Child  num=${num}"
             binding.text.setOnClickListener {
@@ -132,15 +165,48 @@ class MainActivity : WidgetActivity() {
             return binding.root
         }
 
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
+            Log.d("yijinsb", "Widget2Child onCreate ")
+        }
+
+        override fun onStart() {
+            super.onStart()
+            Log.d("yijinsb", "Widget2Child onStart ")
+        }
+
+        override fun onResume() {
+            super.onResume()
+            Log.d("yijinsb", "Widget2Child onResume ")
+        }
+
+        override fun onPause() {
+            super.onPause()
+            Log.d("yijinsb", "Widget2Child onPause ")
+        }
+
+        override fun onStop() {
+            super.onStop()
+            Log.d("yijinsb", "Widget2Child onStop ")
+        }
+
+        override fun onDestroyView() {
+            super.onDestroyView()
+            Log.d("yijinsb", "Widget2Child onDestroyView ")
+        }
+
+        override fun onDestroy() {
+            super.onDestroy()
+            Log.d("yijinsb", "Widget2Child onDestroy ")
+        }
+
 
     }
 
     class Widget3 : Widget() {
         private lateinit var binding: Widget3Binding
         override fun onCreateView(container: ViewGroup?): View {
-            if (isChangingConfigurations) {
-                return contentView!!
-            }
+        
             binding = Widget3Binding.inflate(layoutInflater)
             binding.back.setOnClickListener {
                 backPressed()

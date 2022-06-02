@@ -84,7 +84,7 @@ internal class PageWidgetManager(val widgetManager: WidgetManager) {
 
             } else {
                 val widget = it.widgetType.newInstance()
-                widget.pageRestore(widgetManager, it, pageRootView, false)
+                widget.pageRestore(widgetManager, it, pageRootView)
                 widgetData.put(it, widget)
             }
         }
@@ -103,10 +103,18 @@ internal class PageWidgetManager(val widgetManager: WidgetManager) {
             widgetManager.activity.setContentView(topPageWidget()!!.contentView)
         }
         pageRootView = topPageWidget()!!.parentView
-        pageData.forEach {
-            val widget = getPageWidget(it)
-            widget.pageRestore(widgetManager, it, pageRootView, true)
+        when (widgetManager.activity.lifecycle.currentState) {
+            Lifecycle.State.STARTED -> {
+                topPageWidget()!!.postAction(WidgetAction.ACTION_START)
+
+            }
+            Lifecycle.State.RESUMED -> {
+                topPageWidget()!!.postAction(WidgetAction.ACTION_START)
+                topPageWidget()!!.postAction(WidgetAction.ACTION_RESUME)
+            }
+
         }
+
 
     }
 

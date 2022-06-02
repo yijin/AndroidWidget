@@ -7,7 +7,7 @@ import com.yj.widget.Widget
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
-class PageWidgetWrapper(
+open class PageWidgetWrapper(
     val widgetType: Class<out Widget>,
     val bundle: Bundle?,
     @AnimRes var exitAnimResId: Int = 0

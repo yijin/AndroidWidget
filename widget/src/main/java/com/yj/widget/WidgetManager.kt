@@ -3,6 +3,7 @@ package com.yj.widget
 
 import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import android.view.ViewGroup
 import androidx.lifecycle.*
 import com.yj.widget.page.PageWidgetManager
@@ -56,7 +57,10 @@ class WidgetManager : DefaultLifecycleObserver {
 
     override fun onDestroy(owner: LifecycleOwner) {
         super.onDestroy(owner)
-        pageWidgetManager.destroy()
+
+        if (!activity.isChangingConfigurations || !activity.needSaveWidgets()) {
+            pageWidgetManager.destroy()
+        }
 
 
     }

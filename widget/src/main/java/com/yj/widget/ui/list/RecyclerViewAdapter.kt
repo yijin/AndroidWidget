@@ -41,7 +41,7 @@ class RecyclerViewAdapter<T : Any>(
     override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
         super.onViewRecycled(holder)
         val viewHolder: RecyclerViewHolder<T> = holder as RecyclerViewHolder<T>
-        viewHolder.widget.removeSelf(true)
+        viewHolder.widget.remove()
     }
 
     override fun onViewAttachedToWindow(holder: RecyclerView.ViewHolder) {

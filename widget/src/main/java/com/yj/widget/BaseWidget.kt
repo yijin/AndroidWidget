@@ -23,11 +23,7 @@ abstract class BaseWidget {
         }
         internal set
 
-    open var isChangingConfigurations: Boolean = false
-        get() {
-            return pageWidget.isChangingConfigurations
-        }
-        internal set
+
 
 
     lateinit var pageWidget: Widget

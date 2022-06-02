@@ -38,8 +38,6 @@ abstract class Widget : BaseWidget() {
         get() {
             return if (isPageWidget) field else pageWidget?.pageBundle
         }
-    override var isChangingConfigurations: Boolean = false
-        get() = if (isPageWidget) field else pageWidget.isChangingConfigurations
 
 
     open protected abstract fun onCreateView(container: ViewGroup?): View
@@ -67,9 +65,7 @@ abstract class Widget : BaseWidget() {
         params: WidgetCreateParams
     ) {
         super.initWidget(params.widgetManager, params.pageWidget)
-        if (isPageWidget) {
-            isChangingConfigurations = false
-        }
+
         this.parentWidget = params.parentWidget
         if (this.parentWidget != null) {
             this.parentWidget?.childWidgets?.add(this)
@@ -110,9 +106,7 @@ abstract class Widget : BaseWidget() {
     ) {
 
         initWidget(widgetManager, this)
-        if (isPageWidget) {
-            isChangingConfigurations = false
-        }
+
         this.pageBundle = pageBundle
         this.exitAnimResId = params.exitAnimResId
         this.parentView = pageRootView
@@ -150,16 +144,13 @@ abstract class Widget : BaseWidget() {
     internal fun pageRestore(
         widgetManager: WidgetManager,
         params: PageWidgetWrapper,
-        pageRootView: ViewGroup?,
-        isChangingConfigurations: Boolean
+        pageRootView: ViewGroup?
     ) {
 
         initWidget(widgetManager, this)
-        this.isChangingConfigurations = isChangingConfigurations
         this.pageBundle = pageBundle
         this.parentView = pageRootView
         this.exitAnimResId = params.exitAnimResId
-
         onCreate(widgetManager.savedInstanceState)
         this.currentState = WidgetState.CREATED
         this.contentView = onCreateView(pageRootView)
@@ -221,14 +212,6 @@ abstract class Widget : BaseWidget() {
     }
 
 
-    open fun onStartView() {
-        Log.d(TAG, "widget onStartView ${this}")
-    }
-
-    open fun onStopView() {
-        Log.d(TAG, "widget onStopView ${this}")
-    }
-
     override fun onConfigurationChanged(newConfig: Configuration) {
         Log.d(TAG, "widget onConfigurationChanged ${this}")
         if (isPageWidget) {
@@ -261,6 +244,12 @@ abstract class Widget : BaseWidget() {
         if (currentState == WidgetState.CREATED_VIEW || currentState == WidgetState.STOP) {
             onStart()
             currentState = WidgetState.STARTED
+        }
+        if (isPageWidget) {
+            pageAllWidgets.forEach {
+
+                it.postAction(WidgetAction.ACTION_START)
+            }
         }
     }
 
