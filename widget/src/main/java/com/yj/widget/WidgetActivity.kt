@@ -3,12 +3,12 @@ package com.yj.widget
 
 import android.content.res.Configuration
 import android.os.Bundle
-import android.view.ViewGroup
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.yj.widget.event.WidgetEventManager
 import com.yj.widget.event.WidgetEventObserve
+import com.yj.widget.page.Page
 
 
 open class WidgetActivity : ComponentActivity() {
@@ -68,8 +68,8 @@ open class WidgetActivity : ComponentActivity() {
     }
 
 
-    fun setPageWidget(widget: Class<out Widget>, bundle: Bundle? = null) {
-        widgetManager.setActivityPage(widget, bundle)
+    fun setPage(page:Page) {
+        widgetManager.setActivityPage(page)
     }
 
 
@@ -147,7 +147,7 @@ open class WidgetActivity : ComponentActivity() {
     }
 
     override fun onBackPressed() {
-        if (!widgetManager.onBackPressed()) {
+        if (!widgetManager.backPressed()) {
             super.onBackPressed()
         }
     }

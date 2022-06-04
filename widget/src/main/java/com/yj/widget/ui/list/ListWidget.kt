@@ -82,7 +82,7 @@ abstract class ListWidget<T : Any>(
 
     fun removeHeaderWidget(widget: Widget) {
         removeHeaderView(widget.contentView)
-        widget.remove()
+        widget.removeSelf()
     }
 
     private fun addHeaderView(pos: Int, view: View?) {
@@ -105,7 +105,7 @@ abstract class ListWidget<T : Any>(
 
     fun removeFooterWidget(widget: Widget) {
         removedFooterView(widget.contentView)
-        widget.remove()
+        widget.removeSelf()
     }
 
     private fun addFooterView(pos: Int, view: View?) {

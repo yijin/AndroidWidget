@@ -12,10 +12,8 @@ import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.LinearLayout
-import androidx.annotation.AnimRes
 import androidx.core.view.setPadding
-import androidx.lifecycle.*
-import com.yj.widget.page.PageWidgetWrapper
+import com.yj.widget.page.PageWrapper
 
 
 abstract class Widget : BaseWidget() {
@@ -28,22 +26,8 @@ abstract class Widget : BaseWidget() {
     var contentView: View? = null
         private set
 
-    @AnimRes
-    private var exitAnimResId = 0
-
-
-    val isPageWidget: Boolean
-        get() = this == pageWidget
-    override var pageBundle: Bundle? = null
-        get() {
-            return if (isPageWidget) field else pageWidget?.pageBundle
-        }
-
 
     open protected abstract fun onCreateView(container: ViewGroup?): View
-
-
-    val pageAllWidgets = ArrayList<BaseWidget>()
 
 
     val isVisible: Boolean
@@ -55,7 +39,11 @@ abstract class Widget : BaseWidget() {
 
     var parentView: ViewGroup? = null
         get() {
-            return if (field != null) field else contentView?.parent as ViewGroup?
+            val view = if (field != null) field else contentView?.parent as ViewGroup?
+            if (view == null && page.rootWidget == this) {
+                return page.pageRootView
+            }
+            return view
         }
         internal set
 
@@ -64,29 +52,35 @@ abstract class Widget : BaseWidget() {
     internal fun create(
         params: WidgetCreateParams
     ) {
-        super.initWidget(params.widgetManager, params.pageWidget)
+        super.initWidget(params.widgetManager, params.page)
 
         this.parentWidget = params.parentWidget
         if (this.parentWidget != null) {
             this.parentWidget?.childWidgets?.add(this)
         }
-        params.pageWidget?.pageAllWidgets?.add(this)
-        this.parentView = params.parentView!!
+        page.pageAllWidgets.add(this)
+        this.parentView = params.parentView
 
         onCreate(widgetManager.savedInstanceState)
         this.currentState = WidgetState.CREATED
         this.contentView = onCreateView(params.parentView)
         this.currentState = WidgetState.CREATED_VIEW
         if (viewAddBuilder != null) {
-            viewAddBuilder!!.add(parentView!!, contentView!!)
+            viewAddBuilder!!.add(parentView, contentView!!)
         } else {
             if (this.contentView?.parent == null) {
-                parentView!!.addView(contentView)
+                if (parentView != null) {
+                    parentView!!.addView(contentView)
+                } else {
+                    activity.setContentView(contentView)
+                }
             }
         }
+        if (this.parentView == null) {
+            this.parentView = contentView?.parent as ViewGroup?
+        }
 
-
-        when (pageWidget?.currentState) {
+        when (page.currentState) {
             WidgetState.STARTED -> {
                 start()
             }
@@ -99,61 +93,25 @@ abstract class Widget : BaseWidget() {
     }
 
 
-    internal fun pageCreate(
-        widgetManager: WidgetManager,
-        params: PageWidgetWrapper,
-        pageRootView: ViewGroup?
-    ) {
-
-        initWidget(widgetManager, this)
-
-        this.pageBundle = pageBundle
-        this.exitAnimResId = params.exitAnimResId
-        this.parentView = pageRootView
-
-        onCreate(widgetManager.savedInstanceState)
-        this.currentState = WidgetState.CREATED
-        this.contentView = onCreateView(pageRootView)
-        this.currentState = WidgetState.CREATED_VIEW
-        if (this.contentView?.parent == null) {
-            if (pageRootView != null) {
-                pageRootView.addView(contentView)
-            } else {
-                activity.setContentView(contentView)
-            }
-        }
-        if (this.contentView?.parent != null) {
-            this.parentView = contentView?.parent as ViewGroup?
-        }
-
-
-
-        when (activity.lifecycle.currentState) {
-            Lifecycle.State.STARTED -> {
-                start()
-
-            }
-            Lifecycle.State.RESUMED -> {
-                start()
-                resume()
-            }
-
-        }
-    }
-
     internal fun pageRestore(
         widgetManager: WidgetManager,
-        params: PageWidgetWrapper,
+        params: PageWrapper,
         pageRootView: ViewGroup?
     ) {
 
-        initWidget(widgetManager, this)
-        this.pageBundle = pageBundle
+        initWidget(widgetManager, params.page)
+
         this.parentView = pageRootView
-        this.exitAnimResId = params.exitAnimResId
         onCreate(widgetManager.savedInstanceState)
         this.currentState = WidgetState.CREATED
         this.contentView = onCreateView(pageRootView)
+        if (viewAddBuilder != null) {
+            //不是顶部的page,不需要添加视图树里面
+            viewAddBuilder!!.add(parentView, contentView!!, false)
+        }
+        if (contentView?.parent != null) {
+            parentView?.removeView(contentView)
+        }
         this.currentState = WidgetState.CREATED_VIEW
 
     }
@@ -199,44 +157,18 @@ abstract class Widget : BaseWidget() {
     }
 
 
-    fun replaceWidget(widget: Widget): Boolean {
-
-        if (isPageWidget) {
-            return throw RuntimeException("PageWidget cannot replace")
-        }
-        if (widgetManager.replaceWidget(this, widget)) {
-
-            return true
-        }
-        return false
-    }
-
-
     override fun onConfigurationChanged(newConfig: Configuration) {
         Log.d(TAG, "widget onConfigurationChanged ${this}")
-        if (isPageWidget) {
-            pageAllWidgets.forEach {
-                it.onConfigurationChanged(newConfig)
-            }
-        }
+
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         Log.d(TAG, "widget onRestoreInstanceState ${this}")
-        if (isPageWidget) {
-            pageAllWidgets.forEach {
-                it.onRestoreInstanceState(savedInstanceState)
-            }
-        }
+
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         Log.d(TAG, "widget onSaveInstanceState ${this}")
-        if (isPageWidget) {
-            pageAllWidgets.forEach {
-                it.onSaveInstanceState(outState)
-            }
-        }
     }
 
 
@@ -245,12 +177,7 @@ abstract class Widget : BaseWidget() {
             onStart()
             currentState = WidgetState.STARTED
         }
-        if (isPageWidget) {
-            pageAllWidgets.forEach {
 
-                it.postAction(WidgetAction.ACTION_START)
-            }
-        }
     }
 
     private fun resume() {
@@ -259,12 +186,7 @@ abstract class Widget : BaseWidget() {
             onResume()
             currentState = WidgetState.RESUMED
         }
-        if (isPageWidget) {
-            pageAllWidgets.forEach {
 
-                it.postAction(WidgetAction.ACTION_RESUME)
-            }
-        }
     }
 
     private fun pause() {
@@ -273,11 +195,7 @@ abstract class Widget : BaseWidget() {
 
             onPause()
         }
-        if (isPageWidget) {
-            pageAllWidgets.forEach {
-                it.postAction(WidgetAction.ACTION_PAUESE)
-            }
-        }
+
     }
 
     private fun stop() {
@@ -286,11 +204,7 @@ abstract class Widget : BaseWidget() {
             currentState = WidgetState.STOP
             onStop()
         }
-        if (isPageWidget) {
-            pageAllWidgets.forEach {
-                it.postAction(WidgetAction.ACTION_STOP)
-            }
-        }
+
     }
 
 
@@ -299,13 +213,7 @@ abstract class Widget : BaseWidget() {
             onDestroyView()
             currentState = WidgetState.DESTROYED_VIEW
         }
-        if (isPageWidget) {
-            pageAllWidgets.forEach {
-                if (it is Widget) {
-                    it.postAction(WidgetAction.ACTION_DESTROY_VIEW)
-                }
-            }
-        }
+
     }
 
     private fun destroy() {
@@ -316,73 +224,8 @@ abstract class Widget : BaseWidget() {
         }
 
 
-        if (isPageWidget) {
-
-            pageAllWidgets.forEach {
-                it.postAction(WidgetAction.ACTION_DESTROY)
-            }
-        }
-
-
     }
 
-
-    private fun pageWidgetReCreateView() {
-        if (!isPageWidget) {
-            return
-        }
-
-        if (contentView != null) {
-
-            if (parentView != null) {
-                parentView?.addView(contentView, 0)
-            } else {
-                activity.setContentView(contentView)
-            }
-        }
-    }
-
-    private fun pageWidgetBack() {
-        if (!isPageWidget) {
-            return
-        }
-
-        when (activity.lifecycle.currentState) {
-            Lifecycle.State.STARTED -> {
-                start()
-            }
-            Lifecycle.State.RESUMED -> {
-                start()
-                resume()
-            }
-
-        }
-    }
-
-    private fun pageWidgetLeave() {
-
-        if (!isPageWidget) {
-            return
-        }
-
-        when (currentState) {
-
-            WidgetState.STARTED -> {
-                stop()
-
-            }
-            WidgetState.RESUMED -> {
-                pause()
-                stop()
-            }
-            WidgetState.PAUSE -> {
-
-                stop()
-            }
-
-        }
-
-    }
 
     override fun postAction(action: WidgetAction) {
 
@@ -400,12 +243,6 @@ abstract class Widget : BaseWidget() {
             WidgetAction.ACTION_STOP -> {
                 stop()
             }
-            WidgetAction.ACTION_PAGE_LEAVE -> {
-                pageWidgetLeave()
-            }
-            WidgetAction.ACTION_PAGE_BACK -> {
-                pageWidgetBack()
-            }
 
             WidgetAction.ACTION_DESTROY_VIEW -> {
                 destroyView()
@@ -414,42 +251,44 @@ abstract class Widget : BaseWidget() {
                 destroy()
             }
 
-            WidgetAction.ACTION_ACTIVITY_DESTROY -> {
-                destroy()
-                if (isPageWidget) {
-                    parentView?.removeView(contentView)
-                    parentView = null
-                }
-            }
-            WidgetAction.ACTION_PAGE_RE_CREATED_VIEW -> {
-                pageWidgetReCreateView()
-            }
         }
 
 
     }
 
+
+    fun replaceWidget(widget: Widget): Boolean {
+
+
+        if (widgetManager.replaceWidget(this, widget)) {
+
+            return true
+        }
+        return false
+    }
+
     private var isRemove = false
     override fun remove() {
-        if ((isPageWidget && !widgetManager.containsPageWidget(this)) || isRemove) {
-            return
-
-        }
-        if (isPageWidget && inTopPageWidget) {
-            widgetManager.onBackPressed()
+        if (page.rootWidget == this) {
+            if (inTopPage) {
+                backPressed()
+            } else {
+                page.remove()
+            }
         } else {
             removeSelf()
         }
     }
 
-    @SuppressLint("ResourceType")
-    internal fun removeSelf(noAnim: Boolean) {
+
+    internal fun removeSelf() {
+
         if (isRemove) {
             return
         }
         isRemove = true
+        super.remove()
         parentWidget?.childWidgets?.remove(this)
-        super.removeSelf()
         when (currentState) {
             WidgetState.CREATED_VIEW -> {
                 destroyView()
@@ -481,39 +320,16 @@ abstract class Widget : BaseWidget() {
             WidgetState.DESTROYED_VIEW -> {
                 destroy()
             }
-            else -> {
-                destroy()
+            WidgetState.DESTROYED -> {
 
             }
         }
-        if (exitAnimResId > 0 && !noAnim) {
 
-            val exitAnim = AnimationUtils.loadAnimation(activity, exitAnimResId)
-            exitAnim?.setAnimationListener(object : Animation.AnimationListener {
-                override fun onAnimationStart(p0: Animation?) {
+        parentView?.removeView(contentView)
 
-                }
 
-                override fun onAnimationEnd(p0: Animation?) {
-                    if (!isActivityDestroyed) {
-                        parentView?.removeView(contentView)
-                    }
-                }
-
-                override fun onAnimationRepeat(p0: Animation?) {
-
-                }
-            })
-            contentView?.startAnimation(exitAnim)
-        } else {
-            parentView?.removeView(contentView)
-        }
     }
 
-    override fun removeSelf() {
-
-        removeSelf(true)
-    }
 
     private var viewAddBuilder: WidgetViewAddBuilder? = null
 
@@ -544,6 +360,12 @@ abstract class Widget : BaseWidget() {
         initViewAddBuilder()
         return viewAddBuilder!!.disableAddView()
     }
+
+    fun enableAddView(): WidgetViewAddBuilder {
+        initViewAddBuilder()
+        return viewAddBuilder!!.enableAddView()
+    }
+
 
     fun index(index: Int): WidgetViewAddBuilder {
         initViewAddBuilder()

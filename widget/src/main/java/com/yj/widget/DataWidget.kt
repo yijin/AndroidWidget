@@ -7,14 +7,14 @@ open class DataWidget : BaseWidget() {
     lateinit var parentWidget: BaseWidget
 
     fun create(widgetManager: WidgetManager, parentWidget: BaseWidget) {
-        super.initWidget(widgetManager, parentWidget.pageWidget)
+        super.initWidget(widgetManager, parentWidget.page)
         this.parentWidget = parentWidget
-        pageWidget.pageAllWidgets.add(this)
+        page.pageAllWidgets.add(this)
         parentWidget.childWidgets.add(this)
         currentState == WidgetState.CREATED
         onCreate(widgetManager.savedInstanceState)
-        if (pageWidget != null) {
-            when (pageWidget?.currentState) {
+        if (page != null) {
+            when (page?.currentState) {
                 WidgetState.STARTED -> {
                     start()
                 }
@@ -85,9 +85,9 @@ open class DataWidget : BaseWidget() {
 
     }
 
-    override fun removeSelf() {
+    override fun remove() {
+        super.remove()
         parentWidget?.childWidgets?.remove(this)
-        super.removeSelf()
 
         when (currentState) {
 
@@ -113,9 +113,7 @@ open class DataWidget : BaseWidget() {
                 destroy()
             }
         }
-
     }
-
 
     override fun postAction(action: WidgetAction) {
 

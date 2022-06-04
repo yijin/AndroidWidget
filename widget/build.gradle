@@ -1,4 +1,5 @@
 import com.yj.xandroiddemo.plugin.*
+
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
@@ -46,7 +47,7 @@ android {
 dependencies {
     implementation AndroidX.appcompat
     implementation AndroidX.coreKtx
-    //implementation 'com.jeremyliao:live-event-bus-x:1.7.3'
+    api Kt.reflect
     testImplementation Depend.junit
     implementation AndroidX.appcompat
     implementation AndroidX.pagingRuntime

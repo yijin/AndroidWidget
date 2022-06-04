@@ -4,18 +4,18 @@ package com.yj.widget.page
 import androidx.annotation.AnimRes
 import androidx.lifecycle.Lifecycle
 import com.yj.widget.*
-import com.yj.widget.page.PageWidgetManager.Companion.START_NORMAL
+import com.yj.widget.page.PageManager.Companion.START_NORMAL
 
-class PageWidgetStartBuilder internal constructor(
+class PageStartBuilder internal constructor(
     val widgetManager: WidgetManager,
-    val page: PageWidgetWrapper,
-    val pageWidgetManager: PageWidgetManager,
-    val startType: Int = START_NORMAL
+    val page: PageWrapper,
+    val pageManager: PageManager,
+    startType: Int = START_NORMAL
 
 ) {
 
-    val params: PageWidgetCreateParams =
-        PageWidgetCreateParams(widgetManager, startType)
+    val params: PageCreateParams =
+        PageCreateParams(widgetManager, startType)
 
 
     fun start(@AnimRes enterAnimResId: Int, @AnimRes exitAnimResId: Int): Boolean {
@@ -27,7 +27,7 @@ class PageWidgetStartBuilder internal constructor(
 
         params.enterAnimResId = enterAnimResId
         page.exitAnimResId = exitAnimResId
-        pageWidgetManager.start(page, params)
+        pageManager.start(page, params)
         return true
 
     }

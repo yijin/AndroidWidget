@@ -12,21 +12,13 @@ import android.os.Looper
 import android.util.Log
 import com.yj.widget.event.WidgetEventManager
 import com.yj.widget.event.WidgetEventObserve
-import com.yj.widget.page.PageWidgetStartBuilder
+import com.yj.widget.page.Page
+import com.yj.widget.page.PageStartBuilder
 
 abstract class BaseWidget {
 
 
-    open  var pageBundle: Bundle? = null
-        get() {
-            return pageWidget.pageBundle
-        }
-        internal set
-
-
-
-
-    lateinit var pageWidget: Widget
+    lateinit var page: Page
         private set
     val TAG = "Widget"
     var currentState: WidgetState = WidgetState.CREATED
@@ -41,8 +33,8 @@ abstract class BaseWidget {
         private set
 
 
-    val inTopPageWidget: Boolean
-        get() = widgetManager.inTopPageWidget(pageWidget)
+    val inTopPage: Boolean
+        get() = widgetManager.inTopPage(page)
 
 
     val childWidgets = ArrayList<BaseWidget>()
@@ -67,9 +59,9 @@ abstract class BaseWidget {
     val context: Context
         get() = activity
 
-    fun initWidget(widgetManager: WidgetManager, pageWidget: Widget) {
+    fun initWidget(widgetManager: WidgetManager, pageWidget: Page) {
         this.widgetManager = widgetManager
-        this.pageWidget = pageWidget
+        this.page = pageWidget
     }
 
 
@@ -112,7 +104,7 @@ abstract class BaseWidget {
 
 
     protected fun backPressed() {
-        activity.onBackPressed()
+        widgetManager.backPressed()
     }
 
     fun finishActivity() {
@@ -125,58 +117,52 @@ abstract class BaseWidget {
     }
 
 
-    fun startPageWidget(widget: Class<out Widget>, bundle: Bundle? = null): PageWidgetStartBuilder {
-        return widgetManager.startPageWidget(widget, bundle)
+    fun startPage(page: Page): PageStartBuilder {
+        return widgetManager.startPage(page)
     }
 
-    fun startPageWidgetClearAll(
-        widget: Class<out Widget>,
-        bundle: Bundle? = null
-    ): PageWidgetStartBuilder {
-        return widgetManager.startPageWidgetClearAll(widget, bundle)
+    fun startPageClearAll(
+        page: Page
+    ): PageStartBuilder {
+        return widgetManager.startPageClearAll(page)
     }
 
-    fun backFirstWidget(classType: Class<out Widget>): Boolean {
-        return widgetManager.backFirstWidget(classType)
+    fun backFirstPage(classType: Class<out Page>): Boolean {
+        return widgetManager.backFirstPage(classType)
     }
 
-    fun backLastWidget(classType: Class<out Widget>): Boolean {
-        return widgetManager.backLastWidget(classType)
+    fun clearTopPage(): Boolean {
+        return widgetManager.backPage(page)
+    }
+
+    fun backLastPage(classType: Class<out Page>): Boolean {
+        return widgetManager.backLastPage(classType)
     }
 
 
-    fun startPageWidgetSingleTask(
-        widget: Class<out Widget>,
-        bundle: Bundle? = null
-    ): PageWidgetStartBuilder {
-        return widgetManager.startPageWidgetSingleTask(widget, bundle)
+    fun startPageSingleTask(
+        page: Page
+    ): PageStartBuilder {
+        return widgetManager.startPageSingleTask(page)
     }
 
-    fun startPageWidgetSingleTop(
-        widget: Class<out Widget>,
-        bundle: Bundle? = null
-    ): PageWidgetStartBuilder {
-        return widgetManager.startPageWidgetSingleTop(widget, bundle)
+    fun startPageSingleTop(
+        page: Page
+    ): PageStartBuilder {
+        return widgetManager.startPageSingleTop(page)
     }
 
 
     protected fun removeAllChild() {
         for (widget in childWidgets) {
-            widget.removeSelf()
+            widget.remove()
         }
         childWidgets.clear()
     }
 
 
     open fun remove() {
-
-        removeSelf()
-    }
-
-    open internal fun removeSelf() {
-
-        pageWidget?.pageAllWidgets?.remove(this)
-        widgetManager.remove(this)
+        page?.pageAllWidgets?.remove(this)
         removeAllChild()
     }
 

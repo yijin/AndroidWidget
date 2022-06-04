@@ -71,6 +71,11 @@ class WidgetViewAddBuilder(private val widget: Widget) {
         return this
     }
 
+    fun enableAddView(): WidgetViewAddBuilder {
+        this.disableAddView = false
+        return this
+    }
+
     fun index(index: Int): WidgetViewAddBuilder {
         this.index = index
         return this
@@ -202,14 +207,20 @@ class WidgetViewAddBuilder(private val widget: Widget) {
     }
 
 
-    internal fun add(parentView: ViewGroup, view: View) {
+    internal fun add(parentView: ViewGroup?, view: View, neeAddView: Boolean = true) {
 
-        if (view.parent == null && !disableAddView) {
-            if (index != null && index!! >= 0 && index!! <= parentView.childCount) {
-                parentView.addView(view, index!!)
+        if (view.parent == null && !disableAddView && neeAddView) {
+            if (parentView != null) {
+                if (index != null && index!! >= 0 && index!! <= parentView.childCount) {
+                    parentView.addView(view, index!!)
+                } else {
+                    parentView.addView(view)
+                }
+
             } else {
-                parentView.addView(view)
+                widget.activity.setContentView(view)
             }
+
         }
         if (backgroundColor != null) {
             view.setBackgroundColor(backgroundColor!!)

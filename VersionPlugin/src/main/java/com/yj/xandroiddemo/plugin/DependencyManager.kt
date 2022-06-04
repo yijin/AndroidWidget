@@ -79,6 +79,8 @@ object Kt {
     val stdlibJdk8 = "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${Versions.kotlin}"
     val test = "org.jetbrains.kotlin:kotlin-test-junit:${Versions.kotlin}"
     val plugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.kotlin}"
+    val reflect = "org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}"
+
 }
 
 object Koin {
