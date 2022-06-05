@@ -1,4 +1,4 @@
-package com.yj.widget.widget.recycler;
+package com.yj.widget.recycler;
 
 import android.view.View
 import android.view.ViewGroup
