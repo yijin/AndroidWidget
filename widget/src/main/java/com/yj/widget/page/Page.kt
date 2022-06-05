@@ -9,10 +9,9 @@ import android.view.animation.AnimationUtils
 import androidx.lifecycle.Lifecycle
 import com.yj.widget.*
 
-abstract class Page : Parcelable {
+abstract class Page : BaseWidget(), Parcelable {
 
-    var currentState: WidgetState = WidgetState.CREATED
-        private set
+
     val pageAllWidgets = ArrayList<BaseWidget>()
     var rootWidget: Widget? = null
         private set
@@ -28,7 +27,7 @@ abstract class Page : Parcelable {
     abstract fun build(): Widget
 
     internal fun initPage(pageManager: PageManager, pageWidgetWrapper: PageWrapper) {
-
+        initWidget(pageManager.widgetManager, this)
         this.pageManager = pageManager
         this.exitAnimResId = pageWidgetWrapper.exitAnimResId
         rootWidget = build()
@@ -96,32 +95,8 @@ abstract class Page : Parcelable {
 
     }
 
-    open fun onCreate(savedInstanceState: Bundle?) {
 
-    }
-
-    open fun onStart() {
-
-    }
-
-    open fun onResume() {
-
-    }
-
-    open fun onPause() {
-
-    }
-
-    open fun onStop() {
-
-    }
-
-    open fun onDestroy() {
-
-    }
-
-
-    internal fun start() {
+    private fun start() {
         if (this.currentState == WidgetState.CREATED ||
             this.currentState == WidgetState.STOP
         ) {
@@ -134,7 +109,7 @@ abstract class Page : Parcelable {
 
     }
 
-    internal fun resume() {
+    private fun resume() {
         if (this.currentState == WidgetState.STARTED ||
             this.currentState == WidgetState.PAUSE
         ) {
@@ -147,7 +122,7 @@ abstract class Page : Parcelable {
 
     }
 
-    internal fun pause() {
+    private fun pause() {
         if (this.currentState == WidgetState.RESUMED) {
             this.currentState = WidgetState.PAUSE
             onPause()
@@ -159,7 +134,7 @@ abstract class Page : Parcelable {
     }
 
 
-    internal fun stop() {
+    private fun stop() {
         if (this.currentState == WidgetState.PAUSE) {
             this.currentState = WidgetState.STOP
             onStop()
@@ -192,27 +167,26 @@ abstract class Page : Parcelable {
     }
 
 
-    open fun onRestoreInstanceState(savedInstanceState: Bundle) {
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         pageAllWidgets.forEach {
             it.onRestoreInstanceState(savedInstanceState)
         }
     }
 
-    open fun onConfigurationChanged(newConfig: Configuration) {
+    override fun onSaveInstanceState(outState: Bundle) {
+        pageAllWidgets.forEach {
+            it.onSaveInstanceState(outState)
+        }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
         pageAllWidgets.forEach {
             it.onConfigurationChanged(newConfig)
         }
     }
 
 
-    open fun onSaveInstanceState(outState: Bundle) {
-        pageAllWidgets.forEach {
-            it.onSaveInstanceState(outState)
-        }
-    }
-
-
-    internal fun remove() {
+    override fun remove() {
         pageManager.removePage(this)
         if (rootWidget == null) {
             return
@@ -221,7 +195,7 @@ abstract class Page : Parcelable {
         rootWidget = null
     }
 
-    internal fun backPressed() {
+    override fun backPressed() {
         pageManager.removePage(this)
         if (rootWidget == null) {
             return
@@ -339,6 +313,30 @@ abstract class Page : Parcelable {
             }
             WidgetState.PAUSE -> {
                 stop()
+            }
+
+        }
+
+    }
+
+    override fun postAction(action: WidgetAction) {
+        when (action) {
+
+
+            WidgetAction.ACTION_START -> {
+                start()
+            }
+            WidgetAction.ACTION_RESUME -> {
+                resume()
+            }
+            WidgetAction.ACTION_PAUESE -> {
+                pause()
+            }
+            WidgetAction.ACTION_STOP -> {
+                stop()
+            }
+            WidgetAction.ACTION_DESTROY -> {
+                destroy()
             }
 
         }

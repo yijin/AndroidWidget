@@ -116,6 +116,10 @@ abstract class Widget : BaseWidget() {
 
     }
 
+    override fun backPressed() {
+        widgetManager.backPressed()
+    }
+
 
     open fun show() {
 
@@ -551,6 +555,7 @@ abstract class Widget : BaseWidget() {
         }
         return viewAddBuilder!!.background(background)
     }
+
 
 }
 

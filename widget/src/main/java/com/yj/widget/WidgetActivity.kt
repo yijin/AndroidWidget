@@ -20,9 +20,6 @@ open class WidgetActivity : ComponentActivity() {
 
         var widgetManager: WidgetManager? = null
 
-        override fun onCleared() {
-            super.onCleared()
-        }
 
     }
 
@@ -31,21 +28,12 @@ open class WidgetActivity : ComponentActivity() {
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (needSaveWidgets()) {
+        hasRestored = false
+        var viewModel: WidgetActivityViewModel? = null
+        if (needConfigurationChangeSaveAll()) {
 
-            val viewModel = ViewModelProvider(this).get(WidgetActivityViewModel::class.java)
-
-            if (viewModel.widgetManager == null) {
-                hasRestored = false
-                widgetManager = WidgetManager()
-                widgetManager.initWidgetManager(this, savedInstanceState)
-                viewModel.widgetManager = widgetManager
-                if (savedInstanceState != null) {
-                    hasRestored = true
-                    widgetManager.restoreNoConfigurationChange(savedInstanceState)
-                }
-
-            } else {
+            viewModel = ViewModelProvider(this).get(WidgetActivityViewModel::class.java)
+            if (viewModel.widgetManager != null) {
                 hasRestored = true
                 widgetManager = viewModel.widgetManager!!
                 if (widgetManager.activity != null) {
@@ -54,24 +42,36 @@ open class WidgetActivity : ComponentActivity() {
                 widgetManager.initWidgetManager(this, savedInstanceState)
                 widgetManager.restoreConfigurationChange()
             }
-        } else {
-            widgetManager = WidgetManager()
-            widgetManager.initWidgetManager(this, savedInstanceState)
+        }
+        if (!hasRestored) {
+            if (needDestroySaveAllPages() && savedInstanceState != null) {
+                hasRestored = true
+                widgetManager = WidgetManager()
+                widgetManager.initWidgetManager(this, savedInstanceState)
+                widgetManager.restoreNoConfigurationChange(savedInstanceState)
+            } else {
+                widgetManager = WidgetManager()
+                widgetManager.initWidgetManager(this, savedInstanceState)
+            }
+            viewModel?.widgetManager = widgetManager
         }
 
 
     }
 
 
-    open fun needSaveWidgets(): Boolean {
+    open fun needConfigurationChangeSaveAll(): Boolean {
+        return true
+    }
+
+    open fun needDestroySaveAllPages(): Boolean {
         return true
     }
 
 
-    fun setPage(page:Page) {
+    fun setPage(page: Page) {
         widgetManager.setActivityPage(page)
     }
-
 
 
     override fun onConfigurationChanged(newConfig: Configuration) {

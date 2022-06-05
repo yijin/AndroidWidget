@@ -32,32 +32,32 @@ class WidgetManager : DefaultLifecycleObserver {
 
     override fun onStart(owner: LifecycleOwner) {
         super.onStart(owner)
-        pageManager.topPage()?.start()
+        pageManager.topPage()?.postAction(WidgetAction.ACTION_START)
 
     }
 
     override fun onResume(owner: LifecycleOwner) {
         super.onResume(owner)
-        pageManager.topPage()?.resume()
+        pageManager.topPage()?.postAction(WidgetAction.ACTION_RESUME)
 
     }
 
     override fun onPause(owner: LifecycleOwner) {
         super.onPause(owner)
-        pageManager.topPage()?.pause()
+        pageManager.topPage()?.postAction(WidgetAction.ACTION_PAUESE)
 
     }
 
     override fun onStop(owner: LifecycleOwner) {
         super.onStop(owner)
-        pageManager.topPage()?.stop()
+        pageManager.topPage()?.postAction(WidgetAction.ACTION_STOP)
 
     }
 
     override fun onDestroy(owner: LifecycleOwner) {
         super.onDestroy(owner)
 
-        if (!activity.isChangingConfigurations || !activity.needSaveWidgets()) {
+        if (!activity.isChangingConfigurations || !activity.needDestroySaveAllPages()) {
             pageManager.topPage()?.activityDestroy()
         }
 

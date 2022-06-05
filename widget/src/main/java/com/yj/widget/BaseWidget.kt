@@ -103,8 +103,8 @@ abstract class BaseWidget {
     }
 
 
-    protected fun backPressed() {
-        widgetManager.backPressed()
+    open fun backPressed() {
+
     }
 
     fun finishActivity() {
@@ -298,7 +298,6 @@ abstract class BaseWidget {
 
     companion object {
         val handlerMain: Handler = Handler(Looper.getMainLooper())
-
 
     }
 

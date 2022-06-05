@@ -141,5 +141,9 @@ open class DataWidget : BaseWidget() {
 
     }
 
+    override fun backPressed() {
+        widgetManager.backPressed()
+    }
+
 
 }

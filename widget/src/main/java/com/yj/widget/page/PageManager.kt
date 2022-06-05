@@ -157,7 +157,7 @@ internal class PageManager(val widgetManager: WidgetManager) {
                 index = 1
                 while (index != backCount) {
 
-                    pageData.get(pageData.size - 2).page.resume()
+                    pageData.get(pageData.size - 2).page.remove()
                     index++
                 }
 
@@ -189,7 +189,7 @@ internal class PageManager(val widgetManager: WidgetManager) {
                 index = 1
                 while (index != backCount) {
 
-                    pageData.get(pageData.size - 2).page.resume()
+                    pageData.get(pageData.size - 2).page.remove()
                     index++
                 }
 
