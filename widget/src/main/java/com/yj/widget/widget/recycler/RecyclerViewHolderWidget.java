@@ -1,4 +1,4 @@
-package com.yj.widget.ui.list;
+package com.yj.widget.widget.recycler;
 
 import androidx.recyclerview.widget.RecyclerView;
 

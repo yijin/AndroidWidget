@@ -1,4 +1,4 @@
-package com.yj.widget.ui.list;
+package com.yj.widget.widget.recycler;
 
 import android.view.View
 import android.view.ViewGroup
@@ -9,16 +9,20 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 
 
-abstract class ListWidget<T : Any>(
+abstract class RecyclerWidget<T : Any>(
     val diffCallback: DiffUtil.ItemCallback<T>,
     val mainDispatcher: CoroutineDispatcher = Dispatchers.Main,
     val workerDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : Widget() {
 
     protected lateinit var mAdapter: RecyclerViewAdapter<T>
+        private set
     protected lateinit var recyclerView: RecyclerView
+        private set
     protected lateinit var headerAndFooterWrapper: HeaderAndFooterWrapper
+        private set
     protected lateinit var layoutManager: RecyclerView.LayoutManager
+        private set
 
 
     override fun onCreateView(container: ViewGroup?): View {
@@ -31,97 +35,65 @@ abstract class ListWidget<T : Any>(
         return recyclerView!!
     }
 
-    fun createRecyclerView(): RecyclerView {
+    open protected fun createRecyclerView(): RecyclerView {
         return RecyclerView(activity)
-    }
-
-    protected fun createAdapter(): RecyclerViewAdapter<T> {
-        return RecyclerViewAdapter(this, diffCallback, mainDispatcher, workerDispatcher)
-
-    }
-
-
-    fun verticalLinearLayoutManager(): LinearLayoutManager {
-        val linearLayoutManager = LinearLayoutManager(activity)
-        linearLayoutManager.setOrientation(RecyclerView.VERTICAL)
-        return linearLayoutManager
-    }
-
-    fun horizontalLinearLayoutManager(): LinearLayoutManager {
-        val linearLayoutManager = LinearLayoutManager(activity)
-        linearLayoutManager.setOrientation(RecyclerView.HORIZONTAL)
-        return linearLayoutManager
     }
 
     open protected fun createLayoutManager(): RecyclerView.LayoutManager {
         return verticalLinearLayoutManager()
     }
 
-    fun addHeaderView(view: View?) {
-        headerAndFooterWrapper?.addHeaderView(view)
+    open protected fun createAdapter(): RecyclerViewAdapter<T> {
+        return RecyclerViewAdapter(this, diffCallback, mainDispatcher, workerDispatcher)
     }
+
+    abstract fun onCreateViewHolderWidget(viewType: Int): RecyclerViewHolderWidget<T>
+
+
+    protected fun verticalLinearLayoutManager(): LinearLayoutManager {
+        val linearLayoutManager = LinearLayoutManager(activity)
+        linearLayoutManager.setOrientation(RecyclerView.VERTICAL)
+        return linearLayoutManager
+    }
+
+    protected fun horizontalLinearLayoutManager(): LinearLayoutManager {
+        val linearLayoutManager = LinearLayoutManager(activity)
+        linearLayoutManager.setOrientation(RecyclerView.HORIZONTAL)
+        return linearLayoutManager
+    }
+
 
     fun addHeaderWidget(widget: Widget) {
         loadChildWidget(recyclerView, widget.disableAddView().get())
-        addHeaderView(widget.contentView)
+        headerAndFooterWrapper?.addHeaderView(widget.contentView)
     }
 
     fun addHeaderWidget(pos: Int, widget: Widget) {
         loadChildWidget(recyclerView, widget.disableAddView().get())
-        addHeaderView(pos, widget.contentView)
+        headerAndFooterWrapper?.addHeaderView(pos, widget.contentView)
     }
 
-
-    private fun removeHeaderView(view: View?): Boolean {
-        return headerAndFooterWrapper.removeHeaderView(view)
-    }
-
-    private fun removeHeaderView(pos: Int) {
-        headerAndFooterWrapper.removeHeaderView(pos)
-    }
 
     fun removeHeaderWidget(widget: Widget) {
-        removeHeaderView(widget.contentView)
+        headerAndFooterWrapper.removeHeaderView(widget.contentView)
         widget.removeSelf()
     }
 
-    private fun addHeaderView(pos: Int, view: View?) {
-        headerAndFooterWrapper.addHeaderView(pos, view)
-    }
-
-    private fun addFooterView(view: View?) {
-        headerAndFooterWrapper.addFootView(view)
-    }
 
     fun addFooterWidget(widget: Widget) {
-        loadChildWidget(recyclerView,widget.disableAddView().get())
-        addFooterView(widget.contentView)
+        loadChildWidget(recyclerView, widget.disableAddView().get())
+        headerAndFooterWrapper.addFootView(widget.contentView)
     }
 
     fun addFooterWidget(pos: Int, widget: Widget) {
         loadChildWidget(recyclerView, widget.disableAddView().get())
-        addFooterView(pos, widget.contentView)
+        headerAndFooterWrapper.addFootView(pos, widget.contentView)
     }
 
     fun removeFooterWidget(widget: Widget) {
-        removedFooterView(widget.contentView)
+        headerAndFooterWrapper.removeFooterView(widget.contentView)
         widget.removeSelf()
     }
-
-    private fun addFooterView(pos: Int, view: View?) {
-        headerAndFooterWrapper.addFootView(pos, view)
-    }
-
-    private fun removedFooterView(view: View?) {
-        headerAndFooterWrapper.removeFooterView(view)
-    }
-
-    private fun removedFooterView(pos: Int) {
-        headerAndFooterWrapper.removeFooterView(pos)
-    }
-
-
-    abstract fun onCreateViewHolderWidget(viewType: Int): RecyclerViewHolderWidget<T>
 
 
     fun smoothScrollToPosition(position: Int) {

@@ -1,4 +1,4 @@
-package com.yj.widget.ui.list
+package com.yj.widget.widget.recycler
 
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -8,7 +8,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 
 class RecyclerViewAdapter<T : Any>(
-    val listWidget: ListWidget<T>,
+    val recyclerWidget: RecyclerWidget<T>,
     diffCallback: DiffUtil.ItemCallback<T>,
     mainDispatcher: CoroutineDispatcher = Dispatchers.Main,
     workerDispatcher: CoroutineDispatcher = Dispatchers.Default
@@ -19,8 +19,8 @@ class RecyclerViewAdapter<T : Any>(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val widget = onCreateViewHolderWidget(viewType)
         widget.setAdapter(this)
-        listWidget.loadChildWidget(
-            listWidget.contentView as ViewGroup,
+        recyclerWidget.loadChildWidget(
+            recyclerWidget.contentView as ViewGroup,
             widget.disableAddView().get()
         )
         return RecyclerViewHolder(widget)
@@ -55,7 +55,7 @@ class RecyclerViewAdapter<T : Any>(
     }
 
     fun onCreateViewHolderWidget(viewType: Int): RecyclerViewHolderWidget<T> {
-        return listWidget.onCreateViewHolderWidget(viewType)
+        return recyclerWidget.onCreateViewHolderWidget(viewType)
     }
 
 }
