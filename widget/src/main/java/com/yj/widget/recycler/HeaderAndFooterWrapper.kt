@@ -7,7 +7,13 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import java.util.*
-
+/**
+ * <pre>
+ *     author: yijin
+ *     date  : 2022/6/5
+ *     desc  :
+ * </pre>
+ */
 open class HeaderAndFooterWrapper(var innerAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 

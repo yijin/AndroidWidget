@@ -2,6 +2,13 @@ package com.yj.widget
 
 import androidx.lifecycle.Lifecycle
 
+/**
+ * <pre>
+ *     author: yijin
+ *     date  : 2022/6/5
+ *     desc  :
+ * </pre>
+ */
 open class DataWidget : BaseWidget() {
 
     lateinit var parentWidget: BaseWidget

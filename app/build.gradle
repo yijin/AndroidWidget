@@ -63,6 +63,8 @@ dependencies {
     implementation AndroidX.constraintlayout
     implementation Retrofit.runtime
     implementation project(":widget")
+    implementation 'androidx.paging:paging-common-ktx:3.0.0'
+
 
     testImplementation Depend.junit
     androidTestImplementation Depend.androidTestJunit

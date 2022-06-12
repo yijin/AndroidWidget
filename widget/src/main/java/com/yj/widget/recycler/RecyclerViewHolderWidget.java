@@ -5,6 +5,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.yj.widget.Widget;
 
 
+/**
+ * <pre>
+ *     author: yijin
+ *     date  : 2022/6/5
+ *     desc  :
+ * </pre>
+ */
 public abstract class RecyclerViewHolderWidget<T> extends Widget {
     private RecyclerViewAdapter mAdapter;
     protected RecyclerView.ViewHolder holder;
@@ -28,7 +35,6 @@ public abstract class RecyclerViewHolderWidget<T> extends Widget {
     }
 
 
-    protected abstract int getLayoutId();
 
     public abstract void bindData(int position, T data);
 

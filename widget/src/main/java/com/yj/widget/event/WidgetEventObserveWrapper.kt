@@ -1,6 +1,12 @@
 package com.yj.widget.event
 
-
+/**
+ * <pre>
+ *     author: yijin
+ *     date  : 2022/6/5
+ *     desc  :
+ * </pre>
+ */
 class WidgetEventObserveWrapper(
     val key: String,
     val observe: WidgetEventObserve<*>,

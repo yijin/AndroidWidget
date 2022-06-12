@@ -9,6 +9,13 @@ import android.view.animation.AnimationUtils
 import androidx.lifecycle.Lifecycle
 import com.yj.widget.*
 
+/**
+ * <pre>
+ *     author: yijin
+ *     date  : 2022/6/5
+ *     desc  :
+ * </pre>
+ */
 abstract class Page : BaseWidget(), Parcelable {
 
 

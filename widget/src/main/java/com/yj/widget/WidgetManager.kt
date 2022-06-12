@@ -10,6 +10,13 @@ import com.yj.widget.page.PageManager
 import com.yj.widget.page.PageStartBuilder
 
 
+/**
+ * <pre>
+ *     author: yijin
+ *     date  : 2022/6/5
+ *     desc  :
+ * </pre>
+ */
 class WidgetManager : DefaultLifecycleObserver {
 
 

@@ -8,7 +8,13 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.yj.widget.WidgetActivity
 
-
+/**
+ * <pre>
+ *     author: yijin
+ *     date  : 2022/6/5
+ *     desc  :
+ * </pre>
+ */
 internal class WidgetEventManager private constructor(val activity: WidgetActivity) :
     DefaultLifecycleObserver {
 

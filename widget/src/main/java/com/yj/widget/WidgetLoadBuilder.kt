@@ -4,6 +4,13 @@ import android.view.ViewGroup
 import androidx.lifecycle.Lifecycle
 import com.yj.widget.page.Page
 
+/**
+ * <pre>
+ *     author: yijin
+ *     date  : 2022/6/5
+ *     desc  :
+ * </pre>
+ */
 internal class WidgetLoadBuilder internal constructor(
     val widgetManager: WidgetManager,
     val widget: Widget,

@@ -15,6 +15,13 @@ import com.yj.widget.event.WidgetEventObserve
 import com.yj.widget.page.Page
 import com.yj.widget.page.PageStartBuilder
 
+/**
+ * <pre>
+ *     author: yijin
+ *     date  : 2022/6/5
+ *     desc  :
+ * </pre>
+ */
 abstract class BaseWidget {
 
 

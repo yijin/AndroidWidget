@@ -6,6 +6,13 @@ import androidx.lifecycle.Lifecycle
 import com.yj.widget.*
 import com.yj.widget.page.PageManager.Companion.START_NORMAL
 
+/**
+ * <pre>
+ *     author: yijin
+ *     date  : 2022/6/5
+ *     desc  :
+ * </pre>
+ */
 class PageStartBuilder internal constructor(
     val widgetManager: WidgetManager,
     val page: PageWrapper,

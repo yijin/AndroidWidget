@@ -11,6 +11,13 @@ import com.yj.widget.event.WidgetEventObserve
 import com.yj.widget.page.Page
 
 
+/**
+ * <pre>
+ *     author: yijin
+ *     date  : 2022/6/5
+ *     desc  :
+ * </pre>
+ */
 open class WidgetActivity : ComponentActivity() {
     private lateinit var widgetManager: WidgetManager
         private set

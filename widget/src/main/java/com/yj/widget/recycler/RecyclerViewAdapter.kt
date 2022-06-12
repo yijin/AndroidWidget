@@ -3,12 +3,20 @@ package com.yj.widget.recycler
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.RecyclerView
 import android.view.ViewGroup
+import androidx.annotation.IntRange
 import androidx.recyclerview.widget.DiffUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 
-class RecyclerViewAdapter<T : Any>(
-    val recyclerWidget: RecyclerWidget<T>,
+/**
+ * <pre>
+ *     author: yijin
+ *     date  : 2022/6/5
+ *     desc  :
+ * </pre>
+ */
+class RecyclerViewAdapter<K : Any, T : Any>(
+    val recyclerWidget: RecyclerWidget<K, T>,
     diffCallback: DiffUtil.ItemCallback<T>,
     mainDispatcher: CoroutineDispatcher = Dispatchers.Main,
     workerDispatcher: CoroutineDispatcher = Dispatchers.Default
@@ -17,6 +25,7 @@ class RecyclerViewAdapter<T : Any>(
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+
         val widget = onCreateViewHolderWidget(viewType)
         widget.setAdapter(this)
         recyclerWidget.loadChildWidget(
@@ -55,7 +64,12 @@ class RecyclerViewAdapter<T : Any>(
     }
 
     fun onCreateViewHolderWidget(viewType: Int): RecyclerViewHolderWidget<T> {
+
         return recyclerWidget.onCreateViewHolderWidget(viewType)
     }
+
+
+
+
 
 }

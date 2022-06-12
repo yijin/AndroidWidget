@@ -6,15 +6,14 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
-import com.yj.widget.DataWidget
+import androidx.paging.PagingSource
 import com.yj.widget.Widget
 import com.yj.widget.WidgetActivity
 import com.yj.widget.event.WidgetEventObserve
 import com.yj.widget.page.Page
-import com.yj.xandroiddemo.app.databinding.Widget1Binding
-import com.yj.xandroiddemo.app.databinding.Widget2Binding
-import com.yj.xandroiddemo.app.databinding.Widget2Child1Binding
-import com.yj.xandroiddemo.app.databinding.Widget3Binding
+import com.yj.widget.recycler.RecyclerViewHolderWidget
+import com.yj.widget.recycler.RecyclerWidget
+import com.yj.xandroiddemo.app.databinding.*
 import kotlinx.android.parcel.Parcelize
 
 
@@ -74,17 +73,68 @@ class MainActivity : WidgetActivity() {
         }
     }
 
-    class Widget1 : Widget() {
-        private lateinit var binding: Widget1Binding
+    class Widget1 : RecyclerWidget<Int, Item>() {
+
+        override fun onCreateViewHolderWidget(viewType: Int): RecyclerViewHolderWidget<Item> {
+            return ItemWidget()
+        }
 
         override fun onCreateView(container: ViewGroup?): View {
-
-            binding = Widget1Binding.inflate(layoutInflater)
-            binding.btn1.setOnClickListener({
-                startPage(Page2(3)).start()
-            })
-            return binding.root
+            postDelayed(Runnable {
+                remove(removeItem!!)
+            }, 3000)
+            return super.onCreateView(container)
         }
+
+        var removeItem: Item? = null
+
+
+        override suspend fun load(params: PagingSource.LoadParams<Int>): PagingSource.LoadResult<Int, Item> {
+            return try {
+
+                val page = params.key ?: 1
+                if (page >= 3) {
+                    return PagingSource.LoadResult.Page(ArrayList<Item>(), page - 1, null)
+                }
+                val pageSize = params.loadSize;
+                val list = ArrayList<Item>()
+                if (page == 1) {
+                    removeItem = Item("item--", "item name 000")
+                    list.add(removeItem!!)
+                }
+                for (i in (page - 1) * pageSize..(page - 1) * pageSize + pageSize) {
+                    list.add(Item("item${i}", "item name ${i}"))
+                }
+                PagingSource.LoadResult.Page(list, if (page > 1) page - 1 else null, page + 1)
+
+            } catch (e: Exception) {
+                PagingSource.LoadResult.Error(e)
+            }
+        }
+
+        override fun areItemsTheSame(oldItem: Item, newItem: Item): Boolean {
+            return oldItem.id == newItem.id
+        }
+
+        class ItemWidget : RecyclerViewHolderWidget<Item>() {
+            private lateinit var binding: WidgetItemBinding
+            override fun onCreateView(container: ViewGroup?): View {
+                binding = WidgetItemBinding.inflate(layoutInflater, container, false)
+                return binding.root
+            }
+
+
+            override fun bindData(position: Int, data: Item) {
+                binding.itemId.text = data.id
+                binding.itemName.text = data.name
+            }
+        }
+
+
+    }
+
+
+    data class Item(val id: String, val name: String) {
 
     }
 

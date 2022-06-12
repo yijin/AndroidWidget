@@ -12,6 +12,13 @@ import com.yj.widget.*
 import java.util.*
 import kotlin.collections.ArrayList
 
+/**
+ * <pre>
+ *     author: yijin
+ *     date  : 2022/6/5
+ *     desc  :
+ * </pre>
+ */
 internal class PageManager(val widgetManager: WidgetManager) {
 
     private val pageData = LinkedList<PageWrapper>()

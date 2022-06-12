@@ -1,5 +1,12 @@
 package com.yj.widget
 
+/**
+ * <pre>
+ *     author: yijin
+ *     date  : 2022/6/5
+ *     desc  :
+ * </pre>
+ */
 internal enum class WidgetAction {
     ACTION_START,
     ACTION_RESUME,

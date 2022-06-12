@@ -15,7 +15,13 @@ import android.widget.LinearLayout
 import androidx.core.view.setPadding
 import com.yj.widget.page.PageWrapper
 
-
+/**
+ * <pre>
+ *     author: yijin
+ *     date  : 2022/6/5
+ *     desc  :
+ * </pre>
+ */
 abstract class Widget : BaseWidget() {
     val layoutInflater: LayoutInflater
         get() = activity.layoutInflater

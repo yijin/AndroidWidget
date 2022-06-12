@@ -8,6 +8,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 
+/**
+ * <pre>
+ *     author: yijin
+ *     date  : 2022/6/5
+ *     desc  :
+ * </pre>
+ */
 class WidgetViewAddBuilder(private val widget: Widget) {
     private var height: Int? = null
     private var width: Int? = null

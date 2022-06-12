@@ -47,10 +47,13 @@ android {
 dependencies {
     implementation AndroidX.appcompat
     implementation AndroidX.coreKtx
-    api Kt.reflect
-    testImplementation Depend.junit
     implementation AndroidX.appcompat
     implementation AndroidX.pagingRuntime
+    implementation 'androidx.paging:paging-common-ktx:3.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.2.1'
+    api Kt.reflect
+    testImplementation Depend.junit
+
     androidTestImplementation Depend.androidTestJunit
     androidTestImplementation Depend.espressoCore
 
