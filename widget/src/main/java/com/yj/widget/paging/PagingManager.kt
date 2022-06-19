@@ -1,4 +1,4 @@
-package com.yj.widget.recycler
+package com.yj.widget.paging
 
 import androidx.paging.*
 import kotlinx.coroutines.CoroutineScope
@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 
 class PagingManager<K : Any, T : Any>(
     val scope: CoroutineScope,
@@ -22,10 +23,13 @@ class PagingManager<K : Any, T : Any>(
             ).flow
         }
 
+    private var pagingData: PagingData<T>? = null
+    private var adapter: PagingViewAdapter<K, T>? = null
     private val _removeItemFlow = MutableStateFlow(mutableListOf<T>())
     private val removedItemsFlow: Flow<MutableList<T>> get() = _removeItemFlow
 
-    fun bindPaging(adapter: RecyclerViewAdapter<K, T>) {
+    fun bindPaging(adapter: PagingViewAdapter<K, T>) {
+        this.adapter = adapter
         scope.launch {
             pageFlow
                 .cachedIn(scope)
@@ -35,21 +39,55 @@ class PagingManager<K : Any, T : Any>(
                     }
                 }
                 .collectLatest {
-
+                    pagingData = it
                     adapter.submitData(it)
                 }
         }
     }
 
-    fun remove(item: T?) {
+    fun removeItem(item: T?) {
         if (item == null) {
             return
         }
 
-        val removes = _removeItemFlow.value
-        val list = mutableListOf(item)
-        list.addAll(removes)
-        _removeItemFlow.value = list
+
+        pagingData = pagingData?.filter {
+            it != item
+
+        }
+        scope.launch {
+            adapter?.submitData(pagingData!!)
+        }
+    }
+
+
+    fun addItem(index: Int, item: T?) {
+        if (item == null) {
+            return
+        }
+        if (index < 0) {
+            return
+        }
+
+
+        var postion = 0
+
+        pagingData = pagingData?.flatMap {
+
+            if (postion == index) {
+                postion++
+                listOf(item, it)
+            } else {
+                postion++
+                listOf(it)
+            }
+
+        }
+        scope.launch {
+            adapter?.submitData(pagingData!!)
+        }
+
+
     }
 
 

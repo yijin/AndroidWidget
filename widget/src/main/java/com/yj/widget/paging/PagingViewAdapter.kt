@@ -1,9 +1,8 @@
-package com.yj.widget.recycler
+package com.yj.widget.paging
 
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.RecyclerView
 import android.view.ViewGroup
-import androidx.annotation.IntRange
 import androidx.recyclerview.widget.DiffUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -15,8 +14,8 @@ import kotlinx.coroutines.Dispatchers
  *     desc  :
  * </pre>
  */
-class RecyclerViewAdapter<K : Any, T : Any>(
-    val recyclerWidget: RecyclerWidget<K, T>,
+class PagingViewAdapter<K : Any, T : Any>(
+    val pagingWidget: PagingWidget<K, T>,
     diffCallback: DiffUtil.ItemCallback<T>,
     mainDispatcher: CoroutineDispatcher = Dispatchers.Main,
     workerDispatcher: CoroutineDispatcher = Dispatchers.Default
@@ -28,44 +27,44 @@ class RecyclerViewAdapter<K : Any, T : Any>(
 
         val widget = onCreateViewHolderWidget(viewType)
         widget.setAdapter(this)
-        recyclerWidget.loadChildWidget(
-            recyclerWidget.contentView as ViewGroup,
+        pagingWidget.loadChildWidget(
+            pagingWidget.contentView as ViewGroup,
             widget.disableAddView().get()
         )
-        return RecyclerViewHolder(widget)
+        return PagingViewHolder(widget)
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val viewHolder: RecyclerViewHolder<T> = holder as RecyclerViewHolder<T>
+        val viewHolder: PagingViewHolder<T> = holder as PagingViewHolder<T>
         bindData(viewHolder.widget, position)
     }
 
     override fun onViewDetachedFromWindow(holder: RecyclerView.ViewHolder) {
         super.onViewDetachedFromWindow(holder)
-        val viewHolder: RecyclerViewHolder<T> = holder as RecyclerViewHolder<T>
+        val viewHolder: PagingViewHolder<T> = holder as PagingViewHolder<T>
         viewHolder.widget.onDetachedFromWindow()
     }
 
 
     override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
         super.onViewRecycled(holder)
-        val viewHolder: RecyclerViewHolder<T> = holder as RecyclerViewHolder<T>
+        val viewHolder: PagingViewHolder<T> = holder as PagingViewHolder<T>
         viewHolder.widget.remove()
     }
 
     override fun onViewAttachedToWindow(holder: RecyclerView.ViewHolder) {
         super.onViewAttachedToWindow(holder)
-        val viewHolder: RecyclerViewHolder<T> = holder as RecyclerViewHolder<T>
+        val viewHolder: PagingViewHolder<T> = holder as PagingViewHolder<T>
         viewHolder.widget.onAttachedToWindow()
     }
 
-    protected fun bindData(widget: RecyclerViewHolderWidget<T>, position: Int) {
+    protected fun bindData(widget: PagingViewHolderWidget<T>, position: Int) {
         widget.bindData(position, getItem(position))
     }
 
-    fun onCreateViewHolderWidget(viewType: Int): RecyclerViewHolderWidget<T> {
+    fun onCreateViewHolderWidget(viewType: Int): PagingViewHolderWidget<T> {
 
-        return recyclerWidget.onCreateViewHolderWidget(viewType)
+        return pagingWidget.onCreateViewHolderWidget(viewType)
     }
 
 

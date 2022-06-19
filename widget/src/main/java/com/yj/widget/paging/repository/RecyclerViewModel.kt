@@ -1,4 +1,4 @@
-package com.yj.widget.recycler.repository
+package com.yj.widget.paging.repository
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel

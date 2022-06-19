@@ -11,8 +11,8 @@ import com.yj.widget.Widget
 import com.yj.widget.WidgetActivity
 import com.yj.widget.event.WidgetEventObserve
 import com.yj.widget.page.Page
-import com.yj.widget.recycler.RecyclerViewHolderWidget
-import com.yj.widget.recycler.RecyclerWidget
+import com.yj.widget.paging.PagingViewHolderWidget
+import com.yj.widget.paging.PagingWidget
 import com.yj.xandroiddemo.app.databinding.*
 import kotlinx.android.parcel.Parcelize
 
@@ -73,20 +73,28 @@ class MainActivity : WidgetActivity() {
         }
     }
 
-    class Widget1 : RecyclerWidget<Int, Item>() {
+    class Widget1 : PagingWidget<Int, Item>() {
 
-        override fun onCreateViewHolderWidget(viewType: Int): RecyclerViewHolderWidget<Item> {
+        override fun onCreateViewHolderWidget(viewType: Int): PagingViewHolderWidget<Item> {
             return ItemWidget()
         }
 
         override fun onCreateView(container: ViewGroup?): View {
             postDelayed(Runnable {
-                remove(removeItem!!)
+                removeItem(removeItem!!)
+                removeItem(removeItem2!!)
+                addItem(1, Item("header11", "header1"))
+                postDelayed(Runnable {
+                    addItem(2, Item("header22", "header2"))
+                }, 500);
+                // insertHeaderItem(Item("header11", "header1"))
+                //insertHeaderItem(Item("header22", "header2"))
             }, 3000)
             return super.onCreateView(container)
         }
 
         var removeItem: Item? = null
+        var removeItem2: Item? = null
 
 
         override suspend fun load(params: PagingSource.LoadParams<Int>): PagingSource.LoadResult<Int, Item> {
@@ -101,6 +109,9 @@ class MainActivity : WidgetActivity() {
                 if (page == 1) {
                     removeItem = Item("item--", "item name 000")
                     list.add(removeItem!!)
+                    removeItem2 = Item("item2--", "item name 002")
+                    list.add(removeItem2!!)
+
                 }
                 for (i in (page - 1) * pageSize..(page - 1) * pageSize + pageSize) {
                     list.add(Item("item${i}", "item name ${i}"))
@@ -116,7 +127,7 @@ class MainActivity : WidgetActivity() {
             return oldItem.id == newItem.id
         }
 
-        class ItemWidget : RecyclerViewHolderWidget<Item>() {
+        class ItemWidget : PagingViewHolderWidget<Item>() {
             private lateinit var binding: WidgetItemBinding
             override fun onCreateView(container: ViewGroup?): View {
                 binding = WidgetItemBinding.inflate(layoutInflater, container, false)

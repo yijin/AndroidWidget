@@ -1,4 +1,4 @@
-package com.yj.widget.recycler;
+package com.yj.widget.paging;
 
 import android.os.Bundle
 import android.view.View
@@ -7,14 +7,12 @@ import androidx.annotation.IntRange
 import androidx.lifecycle.*
 import androidx.paging.*
 import androidx.recyclerview.widget.*
-import com.market.uikit.adapter.HeaderAndFooterWrapper
 import com.yj.widget.Widget
-import com.yj.widget.page.PageManager
-import com.yj.widget.recycler.repository.RepositoryFactory
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 
 
 /**
@@ -25,16 +23,15 @@ import java.lang.reflect.Type
  * </pre>
  */
 //https://github.com/android/architecture-components-samples/blob/main/PagingSample/app/src/main/java/paging/android/example/com/pagingsample/MainActivity.kt
-open abstract class RecyclerWidget<K : Any, T : Any> : Widget() {
+open abstract class PagingWidget<K : Any, T : Any> : Widget() {
     open protected var mainDispatcher: CoroutineDispatcher = Dispatchers.Main
     open protected var workerDispatcher: CoroutineDispatcher = Dispatchers.Default
 
-    protected lateinit var mAdapter: RecyclerViewAdapter<K, T>
+    protected lateinit var mAdapter: PagingViewAdapter<K, T>
         private set
     protected lateinit var recyclerView: RecyclerView
         private set
-    protected lateinit var headerAndFooterWrapper: HeaderAndFooterWrapper
-        private set
+
     protected lateinit var layoutManager: RecyclerView.LayoutManager
         private set
     private lateinit var mViewModel: MyViewModel
@@ -59,21 +56,21 @@ open abstract class RecyclerWidget<K : Any, T : Any> : Widget() {
 
     inner class MyItemCallback : DiffUtil.ItemCallback<T>() {
         override fun areItemsTheSame(oldItem: T, newItem: T): Boolean {
-            return this@RecyclerWidget.areItemsTheSame(oldItem, newItem)
+            return this@PagingWidget.areItemsTheSame(oldItem, newItem)
         }
 
         override fun areContentsTheSame(oldItem: T, newItem: T): Boolean {
-            return this@RecyclerWidget.areContentsTheSame(oldItem, newItem)
+            return this@PagingWidget.areContentsTheSame(oldItem, newItem)
         }
     }
 
     inner class MyPagingSource : PagingSource<K, T>() {
         override fun getRefreshKey(state: PagingState<K, T>): K? {
-            return this@RecyclerWidget.getRefreshKey(state)
+            return this@PagingWidget.getRefreshKey(state)
         }
 
         override suspend fun load(params: LoadParams<K>): LoadResult<K, T> {
-            return this@RecyclerWidget.load(params)
+            return this@PagingWidget.load(params)
         }
 
 
@@ -109,10 +106,10 @@ open abstract class RecyclerWidget<K : Any, T : Any> : Widget() {
     override fun onCreateView(container: ViewGroup?): View {
         mAdapter = createAdapter()
         recyclerView = createRecyclerView()
-        headerAndFooterWrapper = HeaderAndFooterWrapper(mAdapter)
+
         layoutManager = createLayoutManager()
         recyclerView.setLayoutManager(layoutManager)
-        recyclerView.setAdapter(headerAndFooterWrapper)
+        recyclerView.setAdapter(mAdapter)
         /* (mViewModel.liveData as LiveData<PagingData<T>>?)?.observe(activity, { data ->
              submitData(data)
          })*/
@@ -130,11 +127,11 @@ open abstract class RecyclerWidget<K : Any, T : Any> : Widget() {
         return verticalLinearLayoutManager()
     }
 
-    open protected fun createAdapter(): RecyclerViewAdapter<K, T> {
-        return RecyclerViewAdapter(this, onCreateItemCallback(), mainDispatcher, workerDispatcher)
+    open protected fun createAdapter(): PagingViewAdapter<K, T> {
+        return PagingViewAdapter(this, onCreateItemCallback(), mainDispatcher, workerDispatcher)
     }
 
-    abstract fun onCreateViewHolderWidget(viewType: Int): RecyclerViewHolderWidget<T>
+    abstract fun onCreateViewHolderWidget(viewType: Int): PagingViewHolderWidget<T>
 
     open protected fun getRefreshKey(state: PagingState<K, T>): K? {
         return null
@@ -234,33 +231,33 @@ open abstract class RecyclerWidget<K : Any, T : Any> : Widget() {
 
     fun addHeaderWidget(widget: Widget) {
         loadChildWidget(recyclerView, widget.disableAddView().get())
-        headerAndFooterWrapper?.addHeaderView(widget.contentView)
+        //  headerAndFooterWrapper?.addHeaderView(widget.contentView)
     }
 
     fun addHeaderWidget(pos: Int, widget: Widget) {
         loadChildWidget(recyclerView, widget.disableAddView().get())
-        headerAndFooterWrapper?.addHeaderView(pos, widget.contentView)
+        // headerAndFooterWrapper?.addHeaderView(pos, widget.contentView)
     }
 
 
     fun removeHeaderWidget(widget: Widget) {
-        headerAndFooterWrapper.removeHeaderView(widget.contentView)
+        //headerAndFooterWrapper.removeHeaderView(widget.contentView)
         widget.removeSelf()
     }
 
 
     fun addFooterWidget(widget: Widget) {
         loadChildWidget(recyclerView, widget.disableAddView().get())
-        headerAndFooterWrapper.addFootView(widget.contentView)
+        // headerAndFooterWrapper.addFootView(widget.contentView)
     }
 
     fun addFooterWidget(pos: Int, widget: Widget) {
         loadChildWidget(recyclerView, widget.disableAddView().get())
-        headerAndFooterWrapper.addFootView(pos, widget.contentView)
+        // headerAndFooterWrapper.addFootView(pos, widget.contentView)
     }
 
     fun removeFooterWidget(widget: Widget) {
-        headerAndFooterWrapper.removeFooterView(widget.contentView)
+        // headerAndFooterWrapper.removeFooterView(widget.contentView)
         widget.removeSelf()
     }
 
@@ -278,9 +275,17 @@ open abstract class RecyclerWidget<K : Any, T : Any> : Widget() {
     }
 
 
-    fun remove(item: T) {
-        pagingManager.remove(item)
+    fun removeItem(item: T) {
+        pagingManager.removeItem(item)
     }
+
+
+    fun addItem(index: Int, item: T) {
+        pagingManager.addItem(index, item)
+
+
+    }
+
 
     companion object {
 

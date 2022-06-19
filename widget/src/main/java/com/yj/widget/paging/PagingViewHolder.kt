@@ -1,4 +1,4 @@
-package com.yj.widget.recycler
+package com.yj.widget.paging
 
 import androidx.recyclerview.widget.RecyclerView
 
@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
  *     desc  :
  * </pre>
  */
-class RecyclerViewHolder<T>(val widget: RecyclerViewHolderWidget<T>) :
+class PagingViewHolder<T>(val widget: PagingViewHolderWidget<T>) :
     RecyclerView.ViewHolder(
         widget.contentView!!
     ) {

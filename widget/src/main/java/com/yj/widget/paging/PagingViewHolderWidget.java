@@ -1,4 +1,4 @@
-package com.yj.widget.recycler;
+package com.yj.widget.paging;
 
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -12,8 +12,8 @@ import com.yj.widget.Widget;
  *     desc  :
  * </pre>
  */
-public abstract class RecyclerViewHolderWidget<T> extends Widget {
-    private RecyclerViewAdapter mAdapter;
+public abstract class PagingViewHolderWidget<T> extends Widget {
+    private PagingViewAdapter mAdapter;
     protected RecyclerView.ViewHolder holder;
 
 
@@ -21,7 +21,7 @@ public abstract class RecyclerViewHolderWidget<T> extends Widget {
         this.holder = holder;
     }
 
-    public void setAdapter(RecyclerViewAdapter mAdapter) {
+    public void setAdapter(PagingViewAdapter mAdapter) {
         this.mAdapter = mAdapter;
     }
 
