@@ -1,6 +1,7 @@
 package com.yj.widget.page
 
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
@@ -36,6 +37,13 @@ internal class PageManager(val widgetManager: WidgetManager) {
         outState.putParcelableArrayList(PAGE_SAVAE_KAEY, list)
         pageData.forEach {
             it.page.onSaveInstanceState(outState)
+        }
+    }
+
+   internal fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+
+        pageData.forEach {
+            it.page.onActivityResult(requestCode, resultCode, data)
         }
     }
 

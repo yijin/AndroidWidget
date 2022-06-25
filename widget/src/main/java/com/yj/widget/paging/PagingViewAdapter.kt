@@ -29,7 +29,7 @@ class PagingViewAdapter<K : Any, T : Any>(
         widget.setAdapter(this)
         pagingWidget.loadChildWidget(
             pagingWidget.contentView as ViewGroup,
-            widget.disableAddView().get()
+            widget.modifier().disableAddView().get()
         )
         return PagingViewHolder(widget)
     }

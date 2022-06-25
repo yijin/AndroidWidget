@@ -3,17 +3,17 @@ package com.yj.widget
 
 import android.content.ContentResolver
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.graphics.drawable.Drawable
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.os.*
 import android.util.Log
 import com.yj.widget.event.WidgetEventManager
 import com.yj.widget.event.WidgetEventObserve
 import com.yj.widget.page.Page
 import com.yj.widget.page.PageStartBuilder
+import kotlinx.android.parcel.Parcelize
 
 /**
  * <pre>
@@ -22,7 +22,8 @@ import com.yj.widget.page.PageStartBuilder
  *     desc  :
  * </pre>
  */
-abstract class BaseWidget {
+
+open class BaseWidget {
 
 
     lateinit var page: Page
@@ -300,13 +301,20 @@ abstract class BaseWidget {
 
     }
 
-    internal abstract fun postAction(action: WidgetAction)
+    open internal fun postAction(action: WidgetAction) {
 
+    }
+
+    open fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+
+    }
 
     companion object {
         val handlerMain: Handler = Handler(Looper.getMainLooper())
 
     }
+
+
 
 
 }

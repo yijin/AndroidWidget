@@ -3,6 +3,8 @@ package com.yj.xandroiddemo.app
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -66,11 +68,15 @@ class MainActivity : WidgetActivity() {
     }
 
 
+
     @Parcelize
-    class Page1 : Page() {
+    class Page1() : Page() {
+
         override fun build(): Widget {
-            return Widget1().matchParent().backgroundColor(Color.WHITE).get()
+            return Widget1().modifier().matchParent().backgroundColor(Color.WHITE).get()
         }
+
+
     }
 
     class Widget1 : PagingWidget<Int, Item>() {
@@ -151,8 +157,10 @@ class MainActivity : WidgetActivity() {
 
     @Parcelize
     class Page2(var num: Int) : Page() {
+
+
         override fun build(): Widget {
-            return Widget2()
+            return Widget2().modifier()
                 .matchParent()
                 .backgroundColor(Color.WHITE)
                 .get()
@@ -176,6 +184,7 @@ class MainActivity : WidgetActivity() {
                 loadChildWidget(
                     binding.box,
                     Widget2Child()
+                        .modifier()
                         .margin(30)
                         .backgroundColor(Color.BLUE)
                         .width(800)
@@ -277,13 +286,16 @@ class MainActivity : WidgetActivity() {
 
         }
 
-    }
 
+
+
+
+    }
 
     @Parcelize
     class Page3 : Page() {
         override fun build(): Widget {
-            return Widget3()
+            return Widget3().modifier()
                 .matchParent()
                 .backgroundColor(Color.WHITE)
                 .get()

@@ -1,6 +1,7 @@
 package com.yj.widget
 
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -33,7 +34,7 @@ open class WidgetActivity : ComponentActivity() {
     var hasRestored = false
         private set
 
-    public override fun onCreate(savedInstanceState: Bundle?) {
+    protected override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         hasRestored = false
         var viewModel: WidgetActivityViewModel? = null
@@ -97,6 +98,11 @@ open class WidgetActivity : ComponentActivity() {
         widgetManager!!.onSaveInstanceState(outState)
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        widgetManager.onActivityResult(requestCode, resultCode, data)
+    }
+
 
     fun postEvent(event: Any) {
         WidgetEventManager.get(this).post(event, event.javaClass)
@@ -153,11 +159,13 @@ open class WidgetActivity : ComponentActivity() {
         WidgetEventManager.get(this).observeSticky(key, tclass, observe)
     }
 
+
     override fun onBackPressed() {
         if (!widgetManager.backPressed()) {
             super.onBackPressed()
         }
     }
+
 
 
 }

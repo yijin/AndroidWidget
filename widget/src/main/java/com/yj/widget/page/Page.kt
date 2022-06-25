@@ -1,13 +1,16 @@
 package com.yj.widget.page
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.os.Parcel
 import android.os.Parcelable
 import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import androidx.lifecycle.Lifecycle
 import com.yj.widget.*
+import kotlinx.android.parcel.Parcelize
 
 /**
  * <pre>
@@ -16,7 +19,10 @@ import com.yj.widget.*
  *     desc  :
  * </pre>
  */
+
 abstract class Page : BaseWidget(), Parcelable {
+
+
 
 
     val pageAllWidgets = ArrayList<BaseWidget>()
@@ -56,7 +62,7 @@ abstract class Page : BaseWidget(), Parcelable {
         this.currentState = WidgetState.CREATED
         onCreate(pageManager.widgetManager.savedInstanceState)
 
-        rootWidget!!.index(-1).enableAddView().get().create(params)
+        rootWidget!!.modifier().index(-1).enableAddView().get().create(params)
         when (pageManager.widgetManager.activity.lifecycle.currentState) {
             Lifecycle.State.STARTED -> {
                 start()
@@ -77,7 +83,7 @@ abstract class Page : BaseWidget(), Parcelable {
     ) {
         this.currentState = WidgetState.CREATED
         onCreate(pageManager.widgetManager.savedInstanceState)
-        rootWidget!!.index(-1).enableAddView().get()
+        rootWidget!!.modifier().index(-1).enableAddView().get()
             .pageRestore(pageManager.widgetManager, params, pageRootView)
     }
 
@@ -183,6 +189,12 @@ abstract class Page : BaseWidget(), Parcelable {
     override fun onSaveInstanceState(outState: Bundle) {
         pageAllWidgets.forEach {
             it.onSaveInstanceState(outState)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        pageAllWidgets.forEach {
+            it.onActivityResult(requestCode, resultCode, data)
         }
     }
 

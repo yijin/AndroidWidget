@@ -1,6 +1,7 @@
 package com.yj.widget
 
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.ViewGroup
@@ -122,7 +123,7 @@ class WidgetManager : DefaultLifecycleObserver {
         }
         val builder = WidgetLoadBuilder(
             this,
-            newWidget.index(index).get(),
+            newWidget.modifier().index(index).get(),
             oldWidget.parentView!!,
             oldWidget.page,
             oldWidget.parentWidget as Widget
@@ -195,6 +196,10 @@ class WidgetManager : DefaultLifecycleObserver {
     fun onRestoreInstanceState(savedInstanceState: Bundle) {
         pageManager.onRestoreInstanceState(savedInstanceState)
 
+    }
+
+    internal fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        pageManager.onActivityResult(requestCode, resultCode, data)
     }
 
     fun inTopPage(page: Page): Boolean {

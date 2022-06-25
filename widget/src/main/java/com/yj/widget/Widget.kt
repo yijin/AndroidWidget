@@ -9,8 +9,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
 import android.widget.LinearLayout
 import androidx.core.view.setPadding
 import com.yj.widget.page.PageWrapper
@@ -34,6 +32,10 @@ abstract class Widget : BaseWidget() {
 
 
     open protected abstract fun onCreateView(container: ViewGroup?): View
+
+    open protected fun onCreatedView() {
+
+    }
 
 
     val isVisible: Boolean
@@ -71,8 +73,8 @@ abstract class Widget : BaseWidget() {
         this.currentState = WidgetState.CREATED
         this.contentView = onCreateView(params.parentView)
         this.currentState = WidgetState.CREATED_VIEW
-        if (viewAddBuilder != null) {
-            viewAddBuilder!!.add(parentView, contentView!!)
+        if (viewModifier != null) {
+            viewModifier!!.add(parentView, contentView!!)
         } else {
             if (this.contentView?.parent == null) {
                 if (parentView != null) {
@@ -85,6 +87,8 @@ abstract class Widget : BaseWidget() {
         if (this.parentView == null) {
             this.parentView = contentView?.parent as ViewGroup?
         }
+        onCreatedView()
+
 
         when (page.currentState) {
             WidgetState.STARTED -> {
@@ -111,14 +115,15 @@ abstract class Widget : BaseWidget() {
         onCreate(widgetManager.savedInstanceState)
         this.currentState = WidgetState.CREATED
         this.contentView = onCreateView(pageRootView)
-        if (viewAddBuilder != null) {
+        if (viewModifier != null) {
             //不是顶部的page,不需要添加视图树里面
-            viewAddBuilder!!.add(parentView, contentView!!, false)
+            viewModifier!!.add(parentView, contentView!!, false)
         }
         if (contentView?.parent != null) {
             parentView?.removeView(contentView)
         }
         this.currentState = WidgetState.CREATED_VIEW
+        onCreatedView()
 
     }
 
@@ -341,20 +346,35 @@ abstract class Widget : BaseWidget() {
     }
 
 
-    private var viewAddBuilder: WidgetViewAddBuilder? = null
+    private var viewModifier: Modifier? = null
 
 
-    private fun initViewAddBuilder() {
+    open internal fun initModifier() {
 
-        if (viewAddBuilder == null) {
-            viewAddBuilder = WidgetViewAddBuilder(this)
+        if (viewModifier == null) {
+            viewModifier = Modifier(this)
         }
 
     }
 
+    open fun modifier(): Modifier {
+        initModifier()
+        return viewModifier!!
+    }
 
-    fun margin(left: Int, top: Int, right: Int, bottom: Int): WidgetViewAddBuilder {
-        initViewAddBuilder()
+
+    open fun setOnLongClickListener(listener: View.OnLongClickListener?) {
+
+        contentView?.setOnLongClickListener(listener)
+    }
+
+    open fun setOnClickListener(listener: View.OnClickListener?) {
+        contentView?.setOnClickListener(listener)
+    }
+
+
+    fun margin(left: Int, top: Int, right: Int, bottom: Int) {
+
         if (contentView != null && contentView?.layoutParams is ViewGroup.MarginLayoutParams) {
             (contentView?.layoutParams as ViewGroup.MarginLayoutParams).setMargins(
                 left,
@@ -363,27 +383,11 @@ abstract class Widget : BaseWidget() {
                 bottom
             )
         }
-        return viewAddBuilder!!.margin(left, top, right, bottom)
+
     }
 
-    fun disableAddView(): WidgetViewAddBuilder {
-        initViewAddBuilder()
-        return viewAddBuilder!!.disableAddView()
-    }
+    fun margin(size: Int) {
 
-    fun enableAddView(): WidgetViewAddBuilder {
-        initViewAddBuilder()
-        return viewAddBuilder!!.enableAddView()
-    }
-
-
-    fun index(index: Int): WidgetViewAddBuilder {
-        initViewAddBuilder()
-        return viewAddBuilder!!.index(index)
-    }
-
-    fun margin(size: Int): WidgetViewAddBuilder {
-        initViewAddBuilder()
         if (contentView != null && contentView?.layoutParams is ViewGroup.MarginLayoutParams) {
             (contentView?.layoutParams as ViewGroup.MarginLayoutParams).setMargins(
                 size,
@@ -392,174 +396,158 @@ abstract class Widget : BaseWidget() {
                 size
             )
         }
-        return viewAddBuilder!!.margin(size)
 
     }
 
-    fun marginLeft(size: Int): WidgetViewAddBuilder {
-        initViewAddBuilder()
+    fun marginLeft(size: Int) {
+
         if (contentView != null && contentView?.layoutParams is ViewGroup.MarginLayoutParams) {
             (contentView?.layoutParams as ViewGroup.MarginLayoutParams).leftMargin = size
         }
-        return viewAddBuilder!!.marginLeft(size)
+
     }
 
-    fun marginTop(size: Int): WidgetViewAddBuilder {
-        initViewAddBuilder()
+    fun marginTop(size: Int) {
+
         if (contentView != null && contentView?.layoutParams is ViewGroup.MarginLayoutParams) {
             (contentView?.layoutParams as ViewGroup.MarginLayoutParams).topMargin = size
         }
-        return viewAddBuilder!!.marginTop(size)
+
     }
 
-    fun marginRight(size: Int): WidgetViewAddBuilder {
+    fun marginRight(size: Int) {
 
-        initViewAddBuilder()
+
         if (contentView != null && contentView?.layoutParams is ViewGroup.MarginLayoutParams) {
             (contentView?.layoutParams as ViewGroup.MarginLayoutParams).rightMargin = size
         }
-        return viewAddBuilder!!.marginRight(size)
+
     }
 
-    fun marginBottom(size: Int): WidgetViewAddBuilder {
+    fun marginBottom(size: Int) {
 
-        initViewAddBuilder()
         if (contentView != null && contentView?.layoutParams is ViewGroup.MarginLayoutParams) {
             (contentView?.layoutParams as ViewGroup.MarginLayoutParams).bottomMargin = size
         }
-        return viewAddBuilder!!.marginBottom(size)
+
     }
 
-    fun weight(weight: Float): WidgetViewAddBuilder {
-        initViewAddBuilder()
+    fun weight(weight: Float) {
+
         if (contentView != null && contentView?.layoutParams is LinearLayout.LayoutParams) {
             (contentView?.layoutParams as LinearLayout.LayoutParams).weight = weight
         }
-        return viewAddBuilder!!.weight(weight)
+
     }
 
-    private fun padding(left: Int, top: Int, right: Int, bottom: Int): WidgetViewAddBuilder {
+    private fun padding(left: Int, top: Int, right: Int, bottom: Int) {
 
-        initViewAddBuilder()
         if (contentView != null) {
             contentView?.setPadding(left, top, right, bottom)
         }
-        return viewAddBuilder!!.padding(left, top, right, bottom)
     }
 
-    fun padding(size: Int): WidgetViewAddBuilder {
-        initViewAddBuilder()
+    fun padding(size: Int) {
+
         if (contentView != null) {
             contentView?.setPadding(size)
         }
-        return viewAddBuilder!!.padding(size)
     }
 
-    fun height(size: Int): WidgetViewAddBuilder {
+    fun height(size: Int) {
 
-        initViewAddBuilder()
         if (contentView != null && contentView?.layoutParams != null) {
             contentView?.layoutParams?.height = size
         }
-        return viewAddBuilder!!.height(size)
     }
 
-    fun width(size: Int): WidgetViewAddBuilder {
+    fun width(size: Int) {
 
-        initViewAddBuilder()
         if (contentView != null && contentView?.layoutParams != null) {
             contentView?.layoutParams?.width = size
         }
-        return viewAddBuilder!!.width(size)
+
     }
 
-    fun size(size: Int): WidgetViewAddBuilder {
-        initViewAddBuilder()
+    fun size(size: Int) {
+
         if (contentView != null && contentView?.layoutParams != null) {
             contentView?.layoutParams?.width = size
             contentView?.layoutParams?.height = size
         }
-        return viewAddBuilder!!.size(size)
+
     }
 
-    fun matchParent(): WidgetViewAddBuilder {
+    fun matchParent() {
 
-        initViewAddBuilder()
         if (contentView != null && contentView?.layoutParams != null) {
             contentView?.layoutParams?.width = ViewGroup.LayoutParams.MATCH_PARENT
             contentView?.layoutParams?.height = ViewGroup.LayoutParams.MATCH_PARENT
         }
-        return viewAddBuilder!!.matchParent()
     }
 
-    fun heightMatchParent(): WidgetViewAddBuilder {
+    fun heightMatchParent() {
 
 
-        initViewAddBuilder()
         if (contentView != null && contentView?.layoutParams != null) {
             contentView?.layoutParams?.height = ViewGroup.LayoutParams.MATCH_PARENT
         }
-        return viewAddBuilder!!.heightMatchParent()
+
     }
 
-    fun widthMatchParent(): WidgetViewAddBuilder {
+    fun widthMatchParent() {
 
-        initViewAddBuilder()
         if (contentView != null && contentView?.layoutParams != null) {
             contentView?.layoutParams?.width = ViewGroup.LayoutParams.MATCH_PARENT
         }
-        return viewAddBuilder!!.widthMatchParent()
     }
 
-    fun wrapContent(): WidgetViewAddBuilder {
-        initViewAddBuilder()
+    fun wrapContent() {
         if (contentView != null && contentView?.layoutParams != null) {
             contentView?.layoutParams?.width = ViewGroup.LayoutParams.WRAP_CONTENT
             contentView?.layoutParams?.height = ViewGroup.LayoutParams.WRAP_CONTENT
         }
-        return viewAddBuilder!!.wrapContent()
+
     }
 
-    fun heightWrapContent(): WidgetViewAddBuilder {
-        initViewAddBuilder()
+    fun heightWrapContent() {
+
         if (contentView != null && contentView?.layoutParams != null) {
             contentView?.layoutParams?.height = ViewGroup.LayoutParams.WRAP_CONTENT
         }
-        return viewAddBuilder!!.heightWrapContent()
     }
 
-    fun widthWrapContent(): WidgetViewAddBuilder {
-        initViewAddBuilder()
+    fun widthWrapContent() {
+
         if (contentView != null && contentView?.layoutParams != null) {
             contentView?.layoutParams?.width = ViewGroup.LayoutParams.WRAP_CONTENT
         }
 
-        return viewAddBuilder!!.widthWrapContent()
     }
 
 
-    fun backgroundColor(color: Int): WidgetViewAddBuilder {
-        initViewAddBuilder()
+    fun backgroundColor(color: Int) {
+
         if (contentView != null) {
             contentView?.setBackgroundColor(color)
         }
-        return viewAddBuilder!!.backgroundColor(color)
+
     }
 
-    fun backgroundResource(resid: Int): WidgetViewAddBuilder {
-        initViewAddBuilder()
+    fun backgroundResource(resid: Int) {
+
         if (contentView != null) {
             contentView?.setBackgroundResource(resid)
         }
-        return viewAddBuilder!!.backgroundResource(resid)
+
     }
 
-    fun background(background: Drawable?): WidgetViewAddBuilder {
-        initViewAddBuilder()
+    fun background(background: Drawable?) {
+
         if (contentView != null) {
             contentView?.background = background
         }
-        return viewAddBuilder!!.background(background)
+
     }
 
 

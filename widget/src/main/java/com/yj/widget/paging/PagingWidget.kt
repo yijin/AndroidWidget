@@ -230,12 +230,12 @@ open abstract class PagingWidget<K : Any, T : Any> : Widget() {
 
 
     fun addHeaderWidget(widget: Widget) {
-        loadChildWidget(recyclerView, widget.disableAddView().get())
+        loadChildWidget(recyclerView, widget.modifier().disableAddView().get())
         //  headerAndFooterWrapper?.addHeaderView(widget.contentView)
     }
 
     fun addHeaderWidget(pos: Int, widget: Widget) {
-        loadChildWidget(recyclerView, widget.disableAddView().get())
+        loadChildWidget(recyclerView, widget.modifier().disableAddView().get())
         // headerAndFooterWrapper?.addHeaderView(pos, widget.contentView)
     }
 
@@ -247,12 +247,12 @@ open abstract class PagingWidget<K : Any, T : Any> : Widget() {
 
 
     fun addFooterWidget(widget: Widget) {
-        loadChildWidget(recyclerView, widget.disableAddView().get())
+        loadChildWidget(recyclerView, widget.modifier().disableAddView().get())
         // headerAndFooterWrapper.addFootView(widget.contentView)
     }
 
     fun addFooterWidget(pos: Int, widget: Widget) {
-        loadChildWidget(recyclerView, widget.disableAddView().get())
+        loadChildWidget(recyclerView, widget.modifier().disableAddView().get())
         // headerAndFooterWrapper.addFootView(pos, widget.contentView)
     }
 
