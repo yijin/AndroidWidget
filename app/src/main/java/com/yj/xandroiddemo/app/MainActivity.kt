@@ -9,6 +9,8 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.paging.PagingSource
+import com.evernote.android.state.State
+import com.evernote.android.state.StateSaver
 import com.yj.widget.Widget
 import com.yj.widget.WidgetActivity
 import com.yj.widget.event.WidgetEventObserve
@@ -21,6 +23,9 @@ import kotlinx.android.parcel.Parcelize
 
 class MainActivity : WidgetActivity() {
 
+    override fun needConfigurationChangeSaveAll(): Boolean {
+        return false
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,14 +73,31 @@ class MainActivity : WidgetActivity() {
     }
 
 
-
     @Parcelize
     class Page1() : Page() {
 
         override fun build(): Widget {
-            return Widget1().modifier().matchParent().backgroundColor(Color.WHITE).get()
+            return Widget11().modifier().matchParent().backgroundColor(Color.WHITE).get()
         }
 
+
+    }
+
+    class Widget11 : Widget() {
+        private lateinit var binding: Widget1Binding
+        override fun onCreateView(container: ViewGroup?): View {
+            Log.d("yijin2b", "Widget2 onCreateView ")
+
+            binding = Widget1Binding.inflate(layoutInflater)
+            return binding.root
+        }
+
+        override fun onCreatedView() {
+            super.onCreatedView()
+            binding.btn1.setOnClickListener {
+                startPage(Page2(2)).start()
+            }
+        }
 
     }
 
@@ -156,7 +178,7 @@ class MainActivity : WidgetActivity() {
     }
 
     @Parcelize
-    class Page2(var num: Int) : Page() {
+    class Page2(@State var num: Int) : Page() {
 
 
         override fun build(): Widget {
@@ -196,6 +218,7 @@ class MainActivity : WidgetActivity() {
 
             override fun onCreate(savedInstanceState: Bundle?) {
                 super.onCreate(savedInstanceState)
+
                 Log.d("yijin2b", "Widget2 onCreate ")
             }
 
@@ -235,6 +258,8 @@ class MainActivity : WidgetActivity() {
         inner class Widget2Child : Widget() {
             private lateinit var binding: Widget2Child1Binding
 
+            @State
+            var tnum = num
 
             override fun onCreateView(container: ViewGroup?): View {
                 Log.d("yijinsb", "Widget2Child onCreateView ")
@@ -242,8 +267,8 @@ class MainActivity : WidgetActivity() {
                 binding = Widget2Child1Binding.inflate(layoutInflater)
                 binding.text.text = "Widget2Child  num=${num}"
                 binding.text.setOnClickListener {
-                    num++
-                    binding.text.text = "Widget2Child  num=${num}"
+                    tnum++
+                    binding.text.text = "Widget2Child  num=${tnum}"
                 }
                 return binding.root
             }
@@ -251,6 +276,10 @@ class MainActivity : WidgetActivity() {
             override fun onCreate(savedInstanceState: Bundle?) {
                 super.onCreate(savedInstanceState)
                 Log.d("yijinsb", "Widget2Child onCreate ")
+            }
+
+            override fun onSaveInstanceState(outState: Bundle) {
+                super.onSaveInstanceState(outState)
             }
 
             override fun onStart() {
@@ -285,9 +314,6 @@ class MainActivity : WidgetActivity() {
 
 
         }
-
-
-
 
 
     }

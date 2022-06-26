@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import androidx.lifecycle.Lifecycle
+import com.evernote.android.state.StateSaver
 import com.yj.widget.*
 import kotlinx.android.parcel.Parcelize
 
@@ -187,6 +188,7 @@ abstract class Page : BaseWidget(), Parcelable {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        StateSaver.saveInstanceState(this, outState);
         pageAllWidgets.forEach {
             it.onSaveInstanceState(outState)
         }

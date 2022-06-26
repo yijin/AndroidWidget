@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.core.view.setPadding
+import com.evernote.android.state.StateSaver
 import com.yj.widget.page.PageWrapper
 
 /**
@@ -172,19 +173,7 @@ abstract class Widget : BaseWidget() {
     }
 
 
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        Log.d(TAG, "widget onConfigurationChanged ${this}")
 
-    }
-
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        Log.d(TAG, "widget onRestoreInstanceState ${this}")
-
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        Log.d(TAG, "widget onSaveInstanceState ${this}")
-    }
 
 
     private fun start() {

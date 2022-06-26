@@ -45,6 +45,12 @@ android {
 }
 
 dependencies {
+    implementation 'com.evernote:android-state:1.4.1'
+    // Java only project
+    annotationProcessor 'com.evernote:android-state-processor:1.4.1'
+
+    // Kotlin with or without Java
+    kapt 'com.evernote:android-state-processor:1.4.1'
     implementation AndroidX.appcompat
     implementation AndroidX.coreKtx
     implementation AndroidX.appcompat

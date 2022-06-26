@@ -7,6 +7,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.evernote.android.state.StateSaver
 import com.yj.widget.event.WidgetEventManager
 import com.yj.widget.event.WidgetEventObserve
 import com.yj.widget.page.Page
@@ -34,8 +35,9 @@ open class WidgetActivity : ComponentActivity() {
     var hasRestored = false
         private set
 
-    protected override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        StateSaver.restoreInstanceState(this, savedInstanceState);
         hasRestored = false
         var viewModel: WidgetActivityViewModel? = null
         if (needConfigurationChangeSaveAll()) {
@@ -95,6 +97,7 @@ open class WidgetActivity : ComponentActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+        StateSaver.saveInstanceState(this, outState);
         widgetManager!!.onSaveInstanceState(outState)
     }
 
@@ -165,7 +168,6 @@ open class WidgetActivity : ComponentActivity() {
             super.onBackPressed()
         }
     }
-
 
 
 }

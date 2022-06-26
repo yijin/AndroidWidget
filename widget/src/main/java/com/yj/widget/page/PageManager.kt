@@ -100,6 +100,7 @@ internal class PageManager(val widgetManager: WidgetManager) {
             pageData.add(it)
         }
 
+
         pageData.peekLast().page.initPage(this, pageData.peekLast())
         pageData.peekLast().page.pageCreate(null)
         pageRootView = pageData.peekLast().page.rootWidget!!.parentView!!

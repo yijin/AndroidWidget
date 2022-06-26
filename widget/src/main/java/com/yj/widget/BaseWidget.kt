@@ -9,6 +9,7 @@ import android.content.res.Resources
 import android.graphics.drawable.Drawable
 import android.os.*
 import android.util.Log
+import com.evernote.android.state.StateSaver
 import com.yj.widget.event.WidgetEventManager
 import com.yj.widget.event.WidgetEventObserve
 import com.yj.widget.page.Page
@@ -75,6 +76,7 @@ open class BaseWidget {
 
     open fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "widget onCreate ${this}")
+        StateSaver.restoreInstanceState(this, savedInstanceState);
     }
 
 
@@ -294,7 +296,7 @@ open class BaseWidget {
     }
 
     open fun onSaveInstanceState(outState: Bundle) {
-
+        StateSaver.saveInstanceState(this, outState);
     }
 
     open fun onRestoreInstanceState(savedInstanceState: Bundle) {
